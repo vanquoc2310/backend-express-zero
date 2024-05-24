@@ -46,5 +46,10 @@ To get started with the project, follow these steps:
     MONGO_URI=your_mongo_db_uri
     JWT_SECRET=your_secret_key
     ```
-© 2024 Văn.Quốc | fb/vanquoc2310
+## Usage
+To start the server, use the following command:
+```sh
+npm start
+
+### © 2024 Văn.Quốc | fb/vanquoc2310
 
