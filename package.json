@@ -1,0 +1,23 @@
+{
+  "name": "backend-express-zero",
+  "version": "1.0.0",
+  "description": "Van Quoc from zero to hero",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "(https://github.com/vanquoc2310/backend-express-zero.git)"
+  },
+  "keywords": [
+    "nodejs",
+    "react"
+  ],
+  "author": "Van Quoc",
+  "license": "ISC",
+  "dependencies": {
+    "express": "4.19.2"
+  }
+}
