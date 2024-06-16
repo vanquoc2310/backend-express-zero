@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "sa",
+    "password": "12345",
+    "database": "SmileDentalManagement",
+    "host": "localhost",
+    "dialect": "mssql",
+    "port": "1433"
+  },
+  "test": {
+    "username": "sa",
+    "password": "12345",
+    "database": "SmileDentalManagement",
+    "host": "localhost",
+    "dialect": "mssql",
+    "port": "1433"
+  },
+  "production": {
+    "username": "sa",
+    "password": "12345",
+    "database": "SmileDentalManagement",
+    "host": "localhost",
+    "dialect": "mssql",
+    "port": "1433"
+  }
+}
