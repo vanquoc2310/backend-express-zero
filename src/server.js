@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const express = require('express')
 const configViewEngine = require('./config/viewEngine');
-const authRoutes = require('./routes/auth.js');
+const webRoutes = require('./routes/web.js');
 const sequelize = require('./models');
 
 
@@ -19,7 +19,7 @@ app.use(express.urlencoded({extended: true})); // for form data
 configViewEngine(app);
 
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', webRoutes);
 
 // const path = require('path');
 
