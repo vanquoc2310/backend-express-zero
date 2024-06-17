@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   return sequelize.define('User', {
     id: {
       autoIncrement: true,
@@ -46,18 +46,28 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     resetPasswordToken: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-      resetPasswordExpires: {
-        type: DataTypes.DATE,
-        allowNull: true
+      type: DataTypes.STRING,
+      allowNull: true
     },
+    resetPasswordExpires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    createdAt: {
+      type: DataTypes.DATE, // Sử dụng kiểu dữ liệu DATE cho createdAt
+      allowNull: false,
+      defaultValue: Sequelize.literal('GETDATE()') // Giá trị mặc định khi tạo mới bản ghi
+    },
+    updatedAt: {
+      type: DataTypes.DATE, // Sử dụng kiểu dữ liệu DATE cho updatedAt
+      allowNull: false,
+      defaultValue: Sequelize.literal('GETDATE()') // Giá trị mặc định khi cập nhật bản ghi
+    }
   }, {
     sequelize,
     tableName: 'user',
     schema: 'dbo',
-    timestamps: false,
+    timestamps: true,
     indexes: [
       {
         name: "PK__user__3213E83FE671F478",

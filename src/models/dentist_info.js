@@ -8,7 +8,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     dentist_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'user',
         key: 'id'
