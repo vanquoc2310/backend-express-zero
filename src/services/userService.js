@@ -104,11 +104,28 @@ const setNewPassword = async (email, password) => {
   }
 }
 
+const findUserById = async (userId) => {
+  try {
+    // Tìm người dùng theo id
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) {
+      console.log('User not found');
+      return null;
+    }
+
+    // Trả về người dùng nếu xác thực thành công
+    return user;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 module.exports = {
   findUserByEmail,
   resetPassword,
   setNewPassword,
   sendVerificationEmail,
   createPasswordResetLink,
-  verifyResetToken
+  verifyResetToken,
+  findUserById
 }
