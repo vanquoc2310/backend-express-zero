@@ -21,7 +21,7 @@ configViewEngine(app);
 
 
 app.use('/api/auth', authRoutes);
-
+app.use('/', webRoutes);
 // const path = require('path');
 
 // // Chỉ định thư mục build của React là thư mục tĩnh

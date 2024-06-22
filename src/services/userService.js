@@ -1,18 +1,19 @@
 require('dotenv').config();
 const { tranForgotPassword } = require('../../lang/eng');
-const User = require('../models').User;
 const { sendEmailNormal } = require('../config/mailer');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
+const db = require("./../models");
+
 
 
 
 let findUserByEmail = async (userEmail) => {
   try {
     // Tìm người dùng theo email
-    const user = await User.findOne({ where: { email: userEmail } });
+    const user = await db.user.findOne({ where: { email: userEmail } });
     if (!user) {
       console.log('User not found');
       return null;
@@ -48,7 +49,7 @@ const sendVerificationEmail = async (User) => {
 
 const createPasswordResetLink = async (email) => {
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await db.user.findOne({ where: { email } });
     if (!user) {
       throw new Error('User not found');
     }
@@ -76,7 +77,7 @@ const resetPassword = async (email, linkVerify) => {
 
 const verifyResetToken = async (email, token) => {
   try {
-    const user = await User.findOne({ where: { email, resetPasswordToken: token, resetPasswordExpires: { [Op.gt]: Date.now() } } });
+    const user = await db.user.findOne({ where: { email, resetPasswordToken: token, resetPasswordExpires: { [Op.gt]: Date.now() } } });
     if (!user) {
       throw new Error('Token is invalid or has expired');
     }
@@ -88,7 +89,7 @@ const verifyResetToken = async (email, token) => {
 
 const setNewPassword = async (email, password) => {
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await db.user.findOne({ where: { email } });
     if (!user) {
       throw new Error('User not found');
     }
@@ -107,7 +108,7 @@ const setNewPassword = async (email, password) => {
 const findUserById = async (userId) => {
   try {
     // Tìm người dùng theo id
-    const user = await User.findOne({ where: { id: userId } });
+    const user = await db.user.findOne({ where: { id: userId } });
     if (!user) {
       console.log('User not found');
       return null;
@@ -120,6 +121,65 @@ const findUserById = async (userId) => {
   }
 }
 
+
+// const getInfoDoctors = async () => {
+//     try {
+//         // Lấy danh sách bác sĩ có số lượng đặt hẹn thành công
+//         const doctors = await db.user.findAll({
+//             where: { role_id: 3 },
+//             attributes: {
+//                 include: [
+//                     [db.sequelize.fn('COUNT', db.sequelize.col('appointment.id')), 'countBooking']
+//                 ]
+//             },
+//             include: [
+//                 {
+//                     model: db.dentist_info,
+//                     as: 'dentist_info',
+//                     required: false,
+//                     include: [{ model: db.clinic, attributes: ['name'] }]
+//                 },
+//                 {
+//                     model: db.appointment,
+//                     as: 'appointments',
+//                     where: { status: 'successful' },
+//                     attributes: []
+//                 }
+//             ],
+//             group: ['user.id', 'dentist_info.id', 'dentist_info->clinic.id'],
+//             order: [[db.sequelize.literal('countBooking'), 'DESC']],
+//             limit: 6
+//         });
+//         return doctors;
+//     } catch (e) {
+//         throw e;
+//     }
+// };
+
+const getDoctorById = async (id) => {
+  try {
+      const doctor = await db.user.findOne({
+          where: { id: id, role_id: 3 },
+          include: [
+              {
+                  model: db.dentist_info,
+                  required: false,
+                  include: [{ model: db.clinic, attributes: ['name'] }]
+              }
+          ]
+      });
+
+      if (!doctor) {
+          throw new Error('Doctor not found');
+      }
+
+      return doctor;
+  } catch (error) {
+      throw error;
+  }
+};
+
+
 module.exports = {
   findUserByEmail,
   resetPassword,
@@ -127,5 +187,7 @@ module.exports = {
   sendVerificationEmail,
   createPasswordResetLink,
   verifyResetToken,
-  findUserById
+  findUserById, 
+  //getInfoDoctors, 
+  getDoctorById
 }

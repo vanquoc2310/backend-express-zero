@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('clinic', {
     id: {
+      autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
@@ -25,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
         model: 'user',
         key: 'id'
       },
-      unique: "UQ__clinic__8019EC38BE132499"
+      unique: "UQ__clinic__8019EC38F5B1B440"
     },
     status: {
       type: DataTypes.BOOLEAN,
@@ -42,14 +43,14 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__clinic__3213E83FB8830DEA",
+        name: "PK__clinic__3213E83FDAD61CE9",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__clinic__8019EC38BE132499",
+        name: "UQ__clinic__8019EC38F5B1B440",
         unique: true,
         fields: [
           { name: "clinic_owner_id" },

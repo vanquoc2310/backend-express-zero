@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('dentist_info', {
     id: {
+      autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
@@ -13,7 +14,7 @@ module.exports = function(sequelize, DataTypes) {
         model: 'user',
         key: 'id'
       },
-      unique: "UQ__dentist___686BBC1837A27040"
+      unique: "UQ__dentist___686BBC18C6754838"
     },
     clinic_id: {
       type: DataTypes.INTEGER,
@@ -42,14 +43,14 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__dentist___3213E83FD5D60E88",
+        name: "PK__dentist___3213E83F6F689E2B",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__dentist___686BBC1837A27040",
+        name: "UQ__dentist___686BBC18C6754838",
         unique: true,
         fields: [
           { name: "dentist_id" },

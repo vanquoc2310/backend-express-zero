@@ -30,7 +30,7 @@ module.exports = function(sequelize, DataTypes) {
         model: 'appointment',
         key: 'id'
       },
-      unique: "UQ__examinat__A50828FD8346ACA6"
+      unique: "UQ__examinat__A50828FDEA1A8321"
     },
     reappointment_id: {
       type: DataTypes.INTEGER,
@@ -39,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
         model: 'reappointment',
         key: 'id'
       },
-      unique: "UQ__examinat__AF984F0DF7150AAA"
+      unique: "UQ__examinat__AF984F0D37377555"
     }
   }, {
     sequelize,
@@ -48,21 +48,21 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__examinat__3213E83F4F4B817D",
+        name: "PK__examinat__3213E83F264B8B82",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__examinat__A50828FD8346ACA6",
+        name: "UQ__examinat__A50828FDEA1A8321",
         unique: true,
         fields: [
           { name: "appointment_id" },
         ]
       },
       {
-        name: "UQ__examinat__AF984F0DF7150AAA",
+        name: "UQ__examinat__AF984F0D37377555",
         unique: true,
         fields: [
           { name: "reappointment_id" },

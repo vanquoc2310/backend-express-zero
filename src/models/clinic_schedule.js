@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('clinic_schedule', {
     schedule_id: {
+      autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
@@ -33,7 +34,7 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__clinic_s__C46A8A6FBD0EEF99",
+        name: "PK__clinic_s__C46A8A6F4C61F50E",
         unique: true,
         fields: [
           { name: "schedule_id" },
