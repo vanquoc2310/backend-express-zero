@@ -123,38 +123,39 @@ const findUserById = async (userId) => {
 
 
 // const getInfoDoctors = async () => {
-//     try {
-//         // Lấy danh sách bác sĩ có số lượng đặt hẹn thành công
-//         const doctors = await db.user.findAll({
-//             where: { role_id: 3 },
-//             attributes: {
-//                 include: [
-//                     [db.sequelize.fn('COUNT', db.sequelize.col('appointment.id')), 'countBooking']
-//                 ]
-//             },
-//             include: [
-//                 {
-//                     model: db.dentist_info,
-//                     as: 'dentist_info',
-//                     required: false,
-//                     include: [{ model: db.clinic, attributes: ['name'] }]
-//                 },
-//                 {
-//                     model: db.appointment,
-//                     as: 'appointments',
-//                     where: { status: 'successful' },
-//                     attributes: []
-//                 }
-//             ],
-//             group: ['user.id', 'dentist_info.id', 'dentist_info->clinic.id'],
-//             order: [[db.sequelize.literal('countBooking'), 'DESC']],
-//             limit: 6
-//         });
-//         return doctors;
-//     } catch (e) {
-//         throw e;
-//     }
+//   try {
+//     const topDentists = await db.user.findAll({
+//       where: {role_id: 3},
+//       include: [
+//         {
+//           model: db.appointment,
+//           as: 'dentist_appointments',
+//           where: { status: 'completed' },
+//           attributes: []
+//         },
+//         {
+//           model: db.dentist_info,
+//           as: 'dentist_info',
+//           attributes: ['degree', 'description', 'actived_date']
+//         }
+//       ],
+//       attributes: [
+//         'id', 
+//         'name', 
+//         [db.sequelize.fn('COUNT', db.sequelize.col('dentist_appointments.id')), 'completed_appointments_count']
+//       ],
+//       group: ['user.id', 'dentist_info.id'],
+//       order: [[db.sequelize.literal('completed_appointments_count'), 'DESC']],
+//       limit: 6,
+//     });
+
+//     return topDentists;
+//   } catch (error) {
+//     console.error('Error fetching top dentists:', error);
+//     throw error;
+//   }
 // };
+
 
 const getDoctorById = async (id) => {
   try {
@@ -163,8 +164,8 @@ const getDoctorById = async (id) => {
           include: [
               {
                   model: db.dentist_info,
-                  required: false,
-                  include: [{ model: db.clinic, attributes: ['name'] }]
+                  as: 'dentist_info',
+                  include: [{ model: db.clinic, as: 'clinic' , attributes: ['name'] }]
               }
           ]
       });

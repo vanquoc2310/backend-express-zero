@@ -1,21 +1,21 @@
 const homeService = require('./../services/homeService');
 const userService = require('./../services/userService');
 
-// const getHomePage = async (req, res) => {
-//     try {
-//         const services = await homeService.getServices();
-//         const clinics = await homeService.getClinics();
-//         const doctors = await userService.getInfoDoctors();
-//         return res.status(200).json({
-//             services,
-//             clinics,
-//             doctors,
-//         });
-//     } catch (e) {
-//         console.log(e);
-//         return res.status(500).json({ error: 'Internal Server Error' });
-//     }
-// };
+const getHomePage = async (req, res) => {
+    try {
+        const services = await homeService.getServices();
+        const clinics = await homeService.getClinics();
+        //const doctors = await userService.getInfoDoctors();
+        return res.status(200).json({
+            services,
+            clinics,
+            //doctors,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 const getPageAllClinics = async (req, res) => {
     try {
@@ -69,10 +69,9 @@ const postSearchHomePage = async (req, res) => {
 const getDetailServicePage = async (req, res) => {
     try {
         const { id } = req.params;
-        console.log(id);
         const service = await homeService.getServiceById(id);
         if (!service) {
-            return res.status(404).json({ error: 'Service not found.' });
+            return res.status(404).json({ error: 'Specialization not found.' });
         }
 
         // Logic to fetch additional data or process as needed
@@ -165,7 +164,7 @@ const getDetailClinicPage = async (req, res) => {
 };
 
 module.exports = {
-    //getHomePage,
+    getHomePage,
     getPageAllClinics,
     getPageAllDoctors,
     getPageAllServices,
@@ -178,3 +177,6 @@ module.exports = {
     postBookingDoctorPageNormal,
     getDetailClinicPage
 };
+
+
+

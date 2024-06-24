@@ -37,6 +37,11 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
+// Initialize models and set up associations
+const initModels = require("./init-models");
+const models = initModels(sequelize);
+Object.assign(db, models);
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
