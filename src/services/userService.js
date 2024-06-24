@@ -156,27 +156,56 @@ const findUserById = async (userId) => {
 //   }
 // };
 
+async function getTopDentists() {
+  try {
+    const topDentistsQuery = `
+      SELECT TOP 6
+        u.id AS dentist_id,
+        u.name,
+        u.email,
+        COUNT(a.id) AS completed_appointments,
+        CAST(di.degree AS NVARCHAR(MAX)) AS degree,
+        c.name AS clinic_name
+      FROM appointment a
+      JOIN "user" u ON a.dentist_id = u.id
+      JOIN dentist_info di ON u.id = di.dentist_id
+      JOIN clinic c ON di.clinic_id = c.id
+      WHERE a.status = 'Completed' AND u.role_id = 3
+      GROUP BY u.id, u.name, u.email, CAST(di.degree AS NVARCHAR(MAX)), c.id, c.name
+      ORDER BY completed_appointments DESC;
+    `;
+
+    const topDentists = await db.sequelize.query(topDentistsQuery, {
+      type: db.sequelize.QueryTypes.SELECT
+    });
+
+    return topDentists;
+  } catch (error) {
+    console.error('Error fetching top dentists:', error);
+  }
+}
+
 
 const getDoctorById = async (id) => {
   try {
-      const doctor = await db.user.findOne({
-          where: { id: id, role_id: 3 },
-          include: [
-              {
-                  model: db.dentist_info,
-                  as: 'dentist_info',
-                  include: [{ model: db.clinic, as: 'clinic' , attributes: ['name'] }]
-              }
-          ]
-      });
+    const doctor = await db.user.findOne({
+      where: { id: id, role_id: 3 },
+      include: [
+        {
+          model: db.dentist_info,
+          as: 'dentist_info',
+          include: [{ model: db.clinic, as: 'clinic', attributes: ['name'] }]
+        }
+      ]
+    });
 
-      if (!doctor) {
-          throw new Error('Doctor not found');
-      }
+    if (!doctor) {
+      throw new Error('Doctor not found');
+    }
 
-      return doctor;
+    return doctor;
   } catch (error) {
-      throw error;
+    throw error;
   }
 };
 
@@ -188,7 +217,8 @@ module.exports = {
   sendVerificationEmail,
   createPasswordResetLink,
   verifyResetToken,
-  findUserById, 
+  findUserById,
   //getInfoDoctors, 
-  getDoctorById
+  getDoctorById,
+  getTopDentists
 }

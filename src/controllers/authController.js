@@ -18,7 +18,7 @@ const register = async (req, res) => {
       email,
       phonenumber,
       password: hashedPassword,
-      role_id: 1,
+      role_id: 2,
     });
 
     await userService.sendVerificationEmail(newUser);

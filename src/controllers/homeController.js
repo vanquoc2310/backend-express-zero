@@ -5,11 +5,11 @@ const getHomePage = async (req, res) => {
     try {
         const services = await homeService.getServices();
         const clinics = await homeService.getClinics();
-        //const doctors = await userService.getInfoDoctors();
+        const doctors = await userService.getTopDentists();
         return res.status(200).json({
             services,
             clinics,
-            //doctors,
+            doctors,
         });
     } catch (e) {
         console.log(e);
