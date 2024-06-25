@@ -32,16 +32,16 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { identifier, password } = req.body; 
+    const { email, password } = req.body; 
     let user;
 
     // Check if the identifier is an email or phone number
-    if (/\S+@\S+\.\S+/.test(identifier)) {
+    if (/\S+@\S+\.\S+/.test(email)) {
       // It's an email
-      user = await userService.findUserByEmail(identifier);
+      user = await userService.findUserByEmail(email);
     } else {
       // It's a phone number
-      user = await userService.findUserByPhoneNumber(identifier);
+      user = await userService.findUserByPhoneNumber(email);
     }
 
     if (!user) {

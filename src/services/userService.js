@@ -78,6 +78,7 @@ const createPasswordResetLink = async (email) => {
 
     const frontendPort = 3000; // Frontend port
     const linkVerify = `http://localhost:${frontendPort}/forgetpassword2?token=${token}&email=${email}`;
+    console.log(linkVerify);
     return linkVerify;
   } catch (error) {
     throw new Error(error.message);
