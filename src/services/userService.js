@@ -26,6 +26,23 @@ let findUserByEmail = async (userEmail) => {
   }
 }
 
+const findUserByPhoneNumber = async (phoneNumber) => {
+  try {
+    // Tìm người dùng theo email
+    const user = await db.user.findOne({ where: { phonenumber: phoneNumber } });
+    if (!user) {
+      console.log('User not found');
+      return null;
+    }
+
+    // Trả về người dùng nếu xác thực thành công
+    return user;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+
 const sendVerificationEmail = async (User) => {
   console.log(User.name);
   const port = process.env.PORT || 8081; //port
@@ -47,7 +64,6 @@ const sendVerificationEmail = async (User) => {
 };
 
 
-
 const createPasswordResetLink = async (email) => {
   try {
     const user = await db.user.findOne({ where: { email } });
@@ -59,9 +75,9 @@ const createPasswordResetLink = async (email) => {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 giờ
     await user.save();
-    const port = process.env.PORT || 8081; 
 
-    const linkVerify = `http://localhost:${port}/api/auth/reset-password?token=${token}&email=${email}`;
+    const frontendPort = 3000; // Frontend port
+    const linkVerify = `http://localhost:${frontendPort}/forgetpassword2?token=${token}&email=${email}`;
     return linkVerify;
   } catch (error) {
     throw new Error(error.message);
@@ -158,56 +174,27 @@ const findUserById = async (userId) => {
 //   }
 // };
 
-async function getTopDentists() {
-  try {
-    const topDentistsQuery = `
-      SELECT TOP 6
-        u.id AS dentist_id,
-        u.name,
-        u.email,
-        COUNT(a.id) AS completed_appointments,
-        CAST(di.degree AS NVARCHAR(MAX)) AS degree,
-        c.name AS clinic_name
-      FROM appointment a
-      JOIN "user" u ON a.dentist_id = u.id
-      JOIN dentist_info di ON u.id = di.dentist_id
-      JOIN clinic c ON di.clinic_id = c.id
-      WHERE a.status = 'Completed' AND u.role_id = 3
-      GROUP BY u.id, u.name, u.email, CAST(di.degree AS NVARCHAR(MAX)), c.id, c.name
-      ORDER BY completed_appointments DESC;
-    `;
-
-    const topDentists = await db.sequelize.query(topDentistsQuery, {
-      type: db.sequelize.QueryTypes.SELECT
-    });
-
-    return topDentists;
-  } catch (error) {
-    console.error('Error fetching top dentists:', error);
-  }
-}
-
 
 const getDoctorById = async (id) => {
   try {
-    const doctor = await db.user.findOne({
-      where: { id: id, role_id: 3 },
-      include: [
-        {
-          model: db.dentist_info,
-          as: 'dentist_info',
-          include: [{ model: db.clinic, as: 'clinic', attributes: ['name'] }]
-        }
-      ]
-    });
+      const doctor = await db.user.findOne({
+          where: { id: id, role_id: 3 },
+          include: [
+              {
+                  model: db.dentist_info,
+                  as: 'dentist_info',
+                  include: [{ model: db.clinic, as: 'clinic' , attributes: ['name'] }]
+              }
+          ]
+      });
 
-    if (!doctor) {
-      throw new Error('Doctor not found');
-    }
+      if (!doctor) {
+          throw new Error('Doctor not found');
+      }
 
-    return doctor;
+      return doctor;
   } catch (error) {
-    throw error;
+      throw error;
   }
 };
 
@@ -219,8 +206,8 @@ module.exports = {
   sendVerificationEmail,
   createPasswordResetLink,
   verifyResetToken,
-  findUserById,
+  findUserById, 
   //getInfoDoctors, 
   getDoctorById,
-  getTopDentists
+  findUserByPhoneNumber
 }

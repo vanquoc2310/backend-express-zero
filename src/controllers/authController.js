@@ -32,13 +32,21 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await userService.findUserByEmail(email);
+    const { identifier, password } = req.body; 
+    let user;
 
-    if (!user) {
-      return res.status(400).json({ error: 'Email is not existed!!' });
+    // Check if the identifier is an email or phone number
+    if (/\S+@\S+\.\S+/.test(identifier)) {
+      // It's an email
+      user = await userService.findUserByEmail(identifier);
+    } else {
+      // It's a phone number
+      user = await userService.findUserByPhoneNumber(identifier);
     }
 
+    if (!user) {
+      return res.status(400).json({ error: 'Email or phone number does not exist' });
+    }
     const isMatch = await bcrypt.compare(password, user.password); // So sánh mật khẩu
 
     if (!isMatch) {
