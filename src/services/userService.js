@@ -28,7 +28,8 @@ let findUserByEmail = async (userEmail) => {
 
 const sendVerificationEmail = async (User) => {
   console.log(User.name);
-  const url = `http://localhost:8080/api/auth/verify/${User.id}`;
+  const port = process.env.PORT || 8081; //port
+  const url = `http://localhost:${port}/api/auth/verify/${User.id}`;
 
   const subject = 'Verify your email';
   const htmlContent = `
@@ -58,8 +59,9 @@ const createPasswordResetLink = async (email) => {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 giờ
     await user.save();
+    const port = process.env.PORT || 8081; 
 
-    const linkVerify = `http://localhost:8080/api/auth/reset-password?token=${token}&email=${email}`;
+    const linkVerify = `http://localhost:${port}/api/auth/reset-password?token=${token}&email=${email}`;
     return linkVerify;
   } catch (error) {
     throw new Error(error.message);
