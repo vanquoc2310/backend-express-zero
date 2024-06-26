@@ -126,10 +126,70 @@ async function updateClinic(data) {
     }
 }
 
+
+const getAllClinics = async () => {
+    return db.clinic.findAll({
+        include: [
+            {
+                model: db.clinic_schedule,
+                as: 'clinic_schedules'
+            },
+            {
+                model: db.clinic_service,
+                as: 'clinic_services',
+                include: [
+                    {
+                        model: db.service,
+                        as: 'service'
+                    }
+                ]
+            },
+            {
+                model: db.user,
+                as: 'clinic_owner',
+                attributes: ['name', 'email']
+            }
+        ]
+    });
+};
+
+const searchClinicsByName = async (name) => {
+    return db.clinic.findAll({
+        where: {
+            name: {
+                [db.Sequelize.Op.like]: `%${name}%`
+            }
+        },
+        include: [
+            {
+                model: db.clinic_schedule,
+                as: 'clinic_schedules'
+            },
+            {
+                model: db.clinic_service,
+                as: 'clinic_services',
+                include: [
+                    {
+                        model: db.service,
+                        as: 'service'
+                    }
+                ]
+            },
+            {
+                model: db.user,
+                as: 'clinic_owner',
+                attributes: ['name', 'email']
+            }
+        ]
+    });
+};
+
 module.exports = {
     //getDetailClinicPage,
     createNewClinic,
     deleteClinicById,
     getClinicById,
-    updateClinic
+    updateClinic,
+    getAllClinics,
+    searchClinicsByName,
 };

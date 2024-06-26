@@ -1,4 +1,5 @@
 const clinicService = require('./../services/clinicService');
+const dentistService = require('../services/dentistService');
 
 
 let putUpdateClinic = async (req, res) => {
@@ -41,8 +42,20 @@ let deleteClinicById = async (req, res) => {
     }
 };
 
+const searchDentistsByName = async (req, res) => {
+    try {
+        const dentists = await dentistService.searchDentistsByName(req.query.name);
+        res.json(dentists);
+    } catch (err) {
+        console.error('Error searching dentists:', err);
+        res.status(500).json({ error: 'Failed to search dentists' });
+    }
+};
+
+
 module.exports = { 
     putUpdateClinic,
     postCreateClinic,
-    deleteClinicById
+    deleteClinicById,
+    searchDentistsByName
 };
