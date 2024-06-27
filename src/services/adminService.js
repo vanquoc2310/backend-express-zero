@@ -85,7 +85,6 @@ const getCustomersAndClinicOwners = async () => {
     return db.user.findAll({
         where: {
             role_id: [2, 4], // 2 is customer, 4 is clinic owner
-            status: true
         }
     });
 };

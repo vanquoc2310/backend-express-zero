@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getHomePage, getPageAllClinics, getPageAllDoctors, getPageAllServices, getPageForPatients, getPageForDoctors, postSearchHomePage, getDetailServicePage, getDetailDoctorPage, postBookingDoctorPageWithoutFiles, postBookingDoctorPageNormal, getDetailClinicPage } = require('../controllers/homeController');
+const { getHomePage, getPageAllClinics, getPageAllDoctors, getPageAllServices, getPageForPatients, getPageForDoctors, postSearchHomePage, getDetailServicePage, getDetailDoctorPage, postBookingDoctorPageWithoutFiles, postBookingDoctorPageNormal, getDetailClinicPage, getDentistsByClinic } = require('../controllers/homeController');
 const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName } = require('../controllers/clinicOwnerController');
 const adminController = require('../controllers/adminController');
 const authorizeAdmin = require('../middleware/adminMiddleware');
@@ -23,6 +23,7 @@ router.post('/booking-doctor-without-files/create', postBookingDoctorPageWithout
 router.post('/booking-doctor-normal/create', postBookingDoctorPageNormal);
 
 router.get('/detail/clinic/:id', getDetailClinicPage);
+router.get('/clinic/:id/dentists', getDentistsByClinic);
 
 
 router.put('/clinic-owner/clinic/update', putUpdateClinic);

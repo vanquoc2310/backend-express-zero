@@ -1,18 +1,15 @@
 const db = require('../models');
-const User = db.user;
-const DentistInfo = db.dentist_info;
-const Clinic = db.clinic;
 
 const getAllDentists = async () => {
-    return User.findAll({
-        where: { role_id: 3 },
+    return db.user.findAll({
+        where: { role_id: 3, status: true },
         include: [
             {
-                model: DentistInfo,
+                model: db.dentist_info,
                 as: 'dentist_info',
                 include: [
                     {
-                        model: Clinic,
+                        model: db.clinic,
                         as: 'clinic'
                     }
                 ]
@@ -27,7 +24,8 @@ const searchDentistsByName = async (name) => {
             role_id: 3,
             name: {
                 [db.Sequelize.Op.like]: `%${name}%`
-            }
+            },
+            status: true
         },
         include: [
             {
@@ -44,7 +42,27 @@ const searchDentistsByName = async (name) => {
     });
 };
 
+const getDentistsByClinic = async (clinicId) => {
+    return db.clinic.findAll({
+        where: { id: clinicId, status: true },
+        include: [
+            {
+                model: db.dentist_info,
+                as: 'dentist_infos',
+                include: [
+                    {
+                        model: db.user,
+                        as: 'dentist',
+                        attributes: ['name', 'image', 'email', 'phonenumber']
+                    }
+                ]
+            }
+        ]
+    });
+};
+
 module.exports = {
     getAllDentists,
     searchDentistsByName,
+    getDentistsByClinic,
 }

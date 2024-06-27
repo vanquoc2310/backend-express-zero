@@ -5,7 +5,7 @@ const Op = Sequelize.Op;
 
 const getServices = async () => {
     try {
-        const services = await db.service.findAll();
+        const services = await db.service.findAll({ where: { status: true } });
         return services;
     } catch (e) {
         throw e;
@@ -14,7 +14,7 @@ const getServices = async () => {
 
 const getClinics = async () => {
     try {
-        const clinics = await db.clinic.findAll();
+        const clinics = await db.clinic.findAll({ where: { status: true } });
         return clinics;
     } catch (e) {
         throw e;
@@ -28,7 +28,8 @@ const postSearchHomePage = async (keyword) => {
                 role_id: 3,
                 name: {
                     [Op.like]: `%${keyword}%`
-                }
+                },
+                status: true
             },
             attributes: ['id', 'name']
         });
@@ -46,7 +47,8 @@ const postSearchHomePage = async (keyword) => {
             where: {
                 name: {
                     [Op.like]: `%${keyword}%`
-                }
+                },
+                status: true
             },
             attributes: ['id', 'name']
         });
@@ -65,7 +67,9 @@ const postSearchHomePage = async (keyword) => {
 const getDataPageAllClinics = async () => {
     try {
         const clinics = await db.clinic.findAll({
-            attributes: ['id', 'name', ]
+            where: { status: true },
+            attributes: ['id', 'name',]
+
         });
 
         return clinics;
@@ -78,7 +82,7 @@ const getDataPageAllDoctors = async () => {
     try {
         const doctors = await db.user.findAll({
             where: {
-                role_id: 3
+                role_id: 3, status: true
             },
             attributes: ['id', 'name', 'image'],
             include: [
@@ -126,13 +130,37 @@ const getServiceById = async (id) => {
     }
 };
 
-const getClinicById = async (id) => {
+const getClinicById = async (clinicId) => {
     try {
-        const service = await db.clinic.findByPk(id);
-        if (!service) {
-            throw new Error('Service not found');
+        const clinic = await db.clinic.findOne({
+            where: { id: clinicId, status: true },
+            include: [
+                {
+                    model: db.clinic_schedule,
+                    as: 'clinic_schedules'
+                },
+                {
+                    model: db.clinic_service,
+                    as: 'clinic_services',
+                    include: [
+                        {
+                            model: db.service,
+                            as: 'service'
+                        }
+                    ]
+                },
+                {
+                    model: db.user,
+                    as: 'clinic_owner',
+                    attributes: ['name', 'email']
+                }
+            ]
+        });
+
+        if (!clinic) {
+            throw new Error('Clinic not found');
         }
-        return service;
+        return clinic;
     } catch (error) {
         throw error;
     }
@@ -145,6 +173,6 @@ module.exports = {
     getDataPageAllClinics,
     getDataPageAllDoctors,
     getDataPageAllServices,
-    getServiceById, 
+    getServiceById,
     getClinicById
 };

@@ -1,5 +1,7 @@
 const homeService = require('./../services/homeService');
 const userService = require('./../services/userService');
+const dentistService = require('./../services/dentistService');
+
 
 const getHomePage = async (req, res) => {
     try {
@@ -163,6 +165,25 @@ const getDetailClinicPage = async (req, res) => {
     }
 };
 
+const getDentistsByClinic = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const clinic = await dentistService.getDentistsByClinic(id)
+        if (!clinic) {
+            return res.status(404).json({ error: 'Dentists of this clinic not found.' });
+        }
+
+        // Logic to fetch additional data or process as needed
+
+        return res.status(200).json({ clinic });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+
 module.exports = {
     getHomePage,
     getPageAllClinics,
@@ -175,7 +196,8 @@ module.exports = {
     getDetailDoctorPage,
     postBookingDoctorPageWithoutFiles,
     postBookingDoctorPageNormal,
-    getDetailClinicPage
+    getDetailClinicPage,
+    getDentistsByClinic
 };
 
 
