@@ -1,7 +1,5 @@
 const db = require("./../models");
 
-const Sequelize = require('sequelize');
-const Op = Sequelize.Op;
 
 // // Hàm lấy chi tiết trang thông tin của clinic dựa trên id và ngày
 // async function getDetailClinicPage(id, date) {
@@ -61,31 +59,31 @@ const Op = Sequelize.Op;
 // Hàm tạo mới một clinic
 async function createNewClinic(item) {
     try {
-        let clinic = await db.Clinic.create(item);
+        let clinic = await db.clinic.create(item);
         return clinic;
     } catch (error) {
         throw error;
     }
 }
 
-// Hàm xóa clinic dựa trên id
 async function deleteClinicById(id) {
     const transaction = await db.sequelize.transaction();
     try {
         // Cập nhật trạng thái của clinic thành false
-        await db.Clinic.update({ status: false }, {
+        await db.clinic.update({ status: false }, {
             where: { id: id },
             transaction: transaction
         });
 
         // Cập nhật trạng thái của tất cả bác sĩ thuộc clinic thành false
-        await db.dentist_info.update({ status: false }, {
-            where: { clinic_id: id },
-            include: {
-                model: db.user,
-                as: 'dentist_info',
-                attributes: ['id'],
-                where: { role_id: 3 }
+        await db.user.update({ status: false }, {
+            where: {
+                id: {
+                    [db.Sequelize.Op.in]: db.sequelize.literal(`(
+                        SELECT dentist_id FROM dentist_info WHERE clinic_id = ${id}
+                    )`)
+                },
+                role_id: 3
             },
             transaction: transaction
         });
@@ -101,7 +99,7 @@ async function deleteClinicById(id) {
 // Hàm lấy thông tin của clinic dựa trên id
 async function getClinicById(id) {
     try {
-        let clinic = await db.Clinic.findOne({
+        let clinic = await db.clinic.findOne({
             where: { id: id },
         });
         return clinic;
@@ -113,7 +111,7 @@ async function getClinicById(id) {
 // Hàm cập nhật thông tin của clinic
 async function updateClinic(data) {
     try {
-        let clinic = await db.Clinic.findOne({
+        let clinic = await db.clinic.findOne({
             where: { id: data.id }
         });
         if (!clinic) {
