@@ -63,7 +63,7 @@ const login = async (req, res) => {
       iat: Math.floor(Date.now() / 1000),  // Issued at time
     };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {});
     res.json({ token });
   } catch (err) {
     res.status(400).json({ error: 'Error logging in' });
