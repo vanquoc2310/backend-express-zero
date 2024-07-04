@@ -5,7 +5,7 @@ const Op = Sequelize.Op;
 
 const getServices = async () => {
     try {
-        const services = await db.service.findAll({ where: { status: true } });
+        const services = await db.service.findAll();
         return services;
     } catch (e) {
         throw e;
@@ -68,7 +68,6 @@ const getDataPageAllClinics = async () => {
     try {
         const clinics = await db.clinic.findAll({
             where: { status: true },
-            attributes: ['id', 'name',]
 
         });
 

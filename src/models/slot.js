@@ -7,24 +7,12 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    dentist_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'user',
-        key: 'id'
-      }
-    },
     start_time: {
       type: DataTypes.TIME,
       allowNull: true
     },
     end_time: {
       type: DataTypes.TIME,
-      allowNull: true
-    },
-    examination_date: {
-      type: DataTypes.DATEONLY,
       allowNull: true
     },
     max_patients: {
@@ -38,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__slot__3213E83FE4E2A681",
+        name: "PK__slot__3213E83F402670CF",
         unique: true,
         fields: [
           { name: "id" },

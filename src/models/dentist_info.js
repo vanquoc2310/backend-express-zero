@@ -14,7 +14,7 @@ module.exports = function(sequelize, DataTypes) {
         model: 'user',
         key: 'id'
       },
-      unique: "UQ__dentist___686BBC18C6754838"
+      unique: "UQ__dentist___686BBC18372E6E66"
     },
     clinic_id: {
       type: DataTypes.INTEGER,
@@ -29,11 +29,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     degree: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(4000),
       allowNull: true
     },
     description: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(4000),
       allowNull: true
     }
   }, {
@@ -43,14 +43,14 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__dentist___3213E83F6F689E2B",
+        name: "PK__dentist___3213E83F7F0D354C",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__dentist___686BBC18C6754838",
+        name: "UQ__dentist___686BBC18372E6E66",
         unique: true,
         fields: [
           { name: "dentist_id" },

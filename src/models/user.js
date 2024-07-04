@@ -10,16 +10,20 @@ module.exports = function(sequelize, DataTypes) {
     email: {
       type: DataTypes.STRING(255),
       allowNull: true,
-      unique: "UQ__user__AB6E61649F6A7DB5"
+      unique: "UQ__user__AB6E6164F7F87138"
     },
     password: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    name: {
       type: DataTypes.STRING(255),
       allowNull: true
     },
     phonenumber: {
       type: DataTypes.STRING(20),
       allowNull: true,
-      unique: "UQ__user__622BF0C2A60DD1DD"
+      unique: "UQ__user__622BF0C225F05774"
     },
     status: {
       type: DataTypes.BOOLEAN,
@@ -27,14 +31,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     role_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'role',
-        key: 'id'
-      }
+      allowNull: true
     },
     image: {
-      type: DataTypes.BLOB,
+      type: DataTypes.STRING(4000),
       allowNull: true
     },
     token_user: {
@@ -59,10 +59,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: Sequelize.literal('GETDATE()') // Giá trị mặc định khi cập nhật bản ghi
     }, 
-    name: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
   }, {
     sequelize,
     tableName: 'user',
@@ -70,21 +66,21 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: true,
     indexes: [
       {
-        name: "PK__user__3213E83FCFF6C1AA",
+        name: "PK__user__3213E83FF6086E51",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__user__622BF0C2A60DD1DD",
+        name: "UQ__user__622BF0C225F05774",
         unique: true,
         fields: [
           { name: "phonenumber" },
         ]
       },
       {
-        name: "UQ__user__AB6E61649F6A7DB5",
+        name: "UQ__user__AB6E6164F7F87138",
         unique: true,
         fields: [
           { name: "email" },

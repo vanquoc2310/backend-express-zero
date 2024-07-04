@@ -26,14 +26,18 @@ module.exports = function(sequelize, DataTypes) {
         model: 'user',
         key: 'id'
       },
-      unique: "UQ__clinic__8019EC38F5B1B440"
+      unique: "UQ__clinic__8019EC38A6B84B1F"
     },
     status: {
       type: DataTypes.BOOLEAN,
       allowNull: true
     },
     description: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(4000),
+      allowNull: true
+    },
+    image: {
+      type: DataTypes.STRING(4000),
       allowNull: true
     }
   }, {
@@ -43,14 +47,14 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__clinic__3213E83FDAD61CE9",
+        name: "PK__clinic__3213E83FFD48D255",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__clinic__8019EC38F5B1B440",
+        name: "UQ__clinic__8019EC38A6B84B1F",
         unique: true,
         fields: [
           { name: "clinic_owner_id" },

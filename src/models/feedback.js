@@ -34,7 +34,7 @@ module.exports = function(sequelize, DataTypes) {
         model: 'examination_result',
         key: 'id'
       },
-      unique: "UQ__feedback__5DFC491E7C431A25"
+      unique: "UQ__feedback__5DFC491E3F011298"
     }
   }, {
     sequelize,
@@ -43,14 +43,14 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__feedback__3213E83F02665499",
+        name: "PK__feedback__3213E83FABAE5005",
         unique: true,
         fields: [
           { name: "id" },
         ]
       },
       {
-        name: "UQ__feedback__5DFC491E7C431A25",
+        name: "UQ__feedback__5DFC491E3F011298",
         unique: true,
         fields: [
           { name: "examination_result_id" },

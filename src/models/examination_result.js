@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     result: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(4000),
       allowNull: true
     },
     result_date: {
@@ -29,8 +29,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'appointment',
         key: 'id'
-      },
-      unique: "UQ__examinat__A50828FDEA1A8321"
+      }
     },
     reappointment_id: {
       type: DataTypes.INTEGER,
@@ -38,8 +37,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'reappointment',
         key: 'id'
-      },
-      unique: "UQ__examinat__AF984F0D37377555"
+      }
     }
   }, {
     sequelize,
@@ -48,24 +46,10 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__examinat__3213E83F264B8B82",
+        name: "PK__examinat__3213E83F7ED8AF53",
         unique: true,
         fields: [
           { name: "id" },
-        ]
-      },
-      {
-        name: "UQ__examinat__A50828FDEA1A8321",
-        unique: true,
-        fields: [
-          { name: "appointment_id" },
-        ]
-      },
-      {
-        name: "UQ__examinat__AF984F0D37377555",
-        unique: true,
-        fields: [
-          { name: "reappointment_id" },
         ]
       },
     ]

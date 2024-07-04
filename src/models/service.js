@@ -8,7 +8,7 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     name: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(200),
       allowNull: true
     },
     price: {
@@ -20,7 +20,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     image: {
-      type: DataTypes.BLOB,
+      type: DataTypes.STRING(4000),
       allowNull: true
     }
   }, {
@@ -30,7 +30,7 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "PK__service__3213E83F7EC60B13",
+        name: "PK__service__3213E83FAAD51D4B",
         unique: true,
         fields: [
           { name: "id" },

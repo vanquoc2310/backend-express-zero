@@ -9,7 +9,7 @@ const authorizeAdmin = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        if (decoded.role !== 1) { // Assuming role 1 is admin
+        if (decoded.role !== 1) {
             return res.status(403).json({ error: 'Forbidden. Not an admin.' });
         }
         req.user = decoded;
