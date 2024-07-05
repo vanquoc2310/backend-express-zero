@@ -182,6 +182,27 @@ const searchClinicsByName = async (name) => {
     });
 };
 
+async function getServicesByClinic(clinicId) {
+    try {
+      const services = await db.service.findAll({
+        include: [
+          {
+            model: db.clinic_service,
+            as: 'clinic_services',
+            where: {
+              clinic_id: clinicId
+            }
+          }
+        ]
+      });
+      
+      return services;
+    } catch (error) {
+      console.error('Error fetching services by clinic:', error);
+      throw new Error('Failed to fetch services by clinic');
+    }
+  }
+
 module.exports = {
     //getDetailClinicPage,
     createNewClinic,
@@ -190,4 +211,5 @@ module.exports = {
     updateClinic,
     getAllClinics,
     searchClinicsByName,
+    getServicesByClinic,
 };

@@ -1,0 +1,33 @@
+const appointmentService = require('../services/appointmentService');
+
+// Route to create a new appointment
+const createAppointment = async (req, res) => {
+    const customerId = req.user.userId;
+    const { clinicId, dentistId, serviceId, slotId, appointmentDate } = req.body;
+    console.log(customerId, clinicId, dentistId, serviceId, slotId, appointmentDate);
+
+    try {
+        const appointment = await appointmentService.createAppointment(customerId, clinicId, dentistId, serviceId, slotId, appointmentDate);
+        res.status(201).json({ message: 'Appointment created successfully', appointment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error creating appointment' });
+    }
+};
+
+const confirmAppointment = async (req, res) => {
+    const appointmentId = req.params.appointmentId;
+
+    try {
+        const appointment = await appointmentService.confirmAppointment(appointmentId);
+        res.json({ message: 'Appointment confirmed successfully', appointment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error confirming appointment' });
+    }
+};
+
+module.exports = {
+    createAppointment,
+    confirmAppointment
+};

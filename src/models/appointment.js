@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const moment = require('moment');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('appointment', {
     id: {
@@ -28,8 +29,13 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     appointment_date: {
-      type: DataTypes.DATE,
-      allowNull: true
+      type: DataTypes.DATE, // Kiểu ngày giờ trong Sequelize
+      allowNull: true,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'), // Sử dụng CURRENT_TIMESTAMP SQL
+      get() {
+        const rawValue = this.getDataValue('appointment_date');
+        return rawValue ? moment(rawValue).tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss') : null; // Định dạng ngày giờ cho múi giờ châu Á/Hà Nội
+      }
     },
     dentist_id: {
       type: DataTypes.INTEGER,

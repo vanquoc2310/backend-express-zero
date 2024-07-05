@@ -167,8 +167,8 @@ const getDetailClinicPage = async (req, res) => {
 
 const getDentistsByClinic = async (req, res) => {
     try {
-        const { id } = req.params;
-        const clinic = await dentistService.getDentistsByClinic(id)
+        const { clinicId } = req.params;
+        const clinic = await dentistService.getDentistsByClinic(clinicId)
         if (!clinic) {
             return res.status(404).json({ error: 'Dentists of this clinic not found.' });
         }

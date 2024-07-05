@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('slot', {
     id: {
@@ -8,11 +9,11 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     start_time: {
-      type: DataTypes.TIME,
+      type: DataTypes.STRING, // Sử dụng STRING thay vì TIME
       allowNull: true
     },
     end_time: {
-      type: DataTypes.TIME,
+      type: DataTypes.STRING, // Sử dụng STRING thay vì TIME
       allowNull: true
     },
     max_patients: {

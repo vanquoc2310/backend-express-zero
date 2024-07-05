@@ -4,6 +4,12 @@ const { getHomePage, getPageAllClinics, getPageAllDoctors, getPageAllServices, g
 const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName } = require('../controllers/clinicOwnerController');
 const adminController = require('../controllers/adminController');
 const authorizeAdmin = require('../middleware/adminMiddleware');
+const dentistController = require('../controllers/dentistController');
+const authorizeDentist = require('../middleware/dentistMiddleware');
+const authorizeLogin = require('../middleware/authMiddleware');
+const appointmentController = require('../controllers/appointmentController');
+const clinicController = require('../controllers/clinicController');
+
 
 // Home routes
 router.get('/all-clinics', getPageAllClinics);
@@ -23,7 +29,9 @@ router.post('/booking-doctor-without-files/create', postBookingDoctorPageWithout
 router.post('/booking-doctor-normal/create', postBookingDoctorPageNormal);
 
 router.get('/detail/clinic/:id', getDetailClinicPage);
-router.get('/clinic/:id/dentists', getDentistsByClinic);
+router.get('/clinic/:clinicId/dentists', getDentistsByClinic);
+router.get('/clinics/:clinicId/services', clinicController.getServicesByClinic);
+
 
 
 router.put('/clinic-owner/clinic/update', putUpdateClinic);
@@ -41,5 +49,13 @@ router.get('/admin/clinics/search', authorizeAdmin, adminController.searchClinic
 router.get('/admin/clinicowners/search', authorizeAdmin, adminController.searchClinicOwnersByName);
 
 router.get('/admin/users/customers-clinicowners', authorizeAdmin, adminController.getCustomersAndClinicOwners);
+
+router.get('/dentist/slots', authorizeDentist, dentistController.getSlotsForDate);
+router.get('/dentist/schedule', authorizeDentist, dentistController.getDentistWeeklySchedule);
+
+
+router.get('/appointments/confirm/:appointmentId', appointmentController.confirmAppointment);
+router.post('/customer/create-appointment', authorizeLogin, appointmentController.createAppointment);
+router.get('/dentists/:dentistId/availble-slots', dentistController.getAvailableSlotsForDate);
 
 module.exports = router;

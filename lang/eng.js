@@ -14,6 +14,8 @@ const transMailBookingNew = {
         <div>Time: ${data.time}</div>
         <div>Date: ${data.date}</div>
         <div>Status: <b> Pending - A new appointment is waiting for confirmation</b></div>
+        <p>Please click the link below to confirm your appointment:</p>
+        <a href="${data.confirmationLink}">Confirm Appointment</a>
         <h4>Doctors Care system will automatically send email notification when confirmed appointment is complete. Thank you !</h4>`;
     },
 };
