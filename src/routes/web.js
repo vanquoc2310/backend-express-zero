@@ -51,6 +51,8 @@ router.get('/admin/clinicowners/search', authorizeAdmin, adminController.searchC
 router.get('/admin/users/customers-clinicowners', authorizeAdmin, adminController.getCustomersAndClinicOwners);
 
 router.get('/dentist/slots', authorizeDentist, dentistController.getSlotsForDate);
+
+//route get lịch trong 7 ngày (tuần hiện tại)
 router.get('/dentist/schedule', authorizeDentist, dentistController.getDentistWeeklySchedule);
 // Route to fetch dentist's patients
 router.get('/dentist/patients', authorizeDentist, dentistController.getDentistPatients);
