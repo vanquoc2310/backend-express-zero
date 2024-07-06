@@ -162,11 +162,78 @@ const getDentistWeeklySchedule = async (dentistId) => {
 };
 
 
+const getDentistPatients = async (dentistId) => {
+    try {
+        // Fetch patients from both appointment and reappointment tables
+        const patientsFromAppointments = await db.appointment.findAll({
+            where: { dentist_id: dentistId, status: 'Confirmed' },
+            include: {
+                model: db.user,
+                as: 'customer',
+                attributes: ['id', 'name', 'email', 'phonenumber']
+            },
+            group: ['customer.id']
+        });
+
+        const patientsFromReappointments = await db.reappointment.findAll({
+            where: { dentist_id: dentistId, status: 'Confirmed' },
+            include: {
+                model: db.user,
+                as: 'customer',
+                attributes: ['id', 'name', 'email', 'phonenumber']
+            },
+            group: ['customer.id']
+        });
+
+        // Combine and remove duplicate patients
+        const allPatients = [...patientsFromAppointments, ...patientsFromReappointments];
+        const uniquePatients = Array.from(new Set(allPatients.map(p => p.customer.id)))
+            .map(id => allPatients.find(p => p.customer.id === id).customer);
+
+        return uniquePatients;
+    } catch (error) {
+        console.error('Error fetching dentist patients:', error);
+        throw new Error('Failed to fetch dentist patients');
+    }
+};
+
+const getDentistPatientHistory = async (dentistId, customerId) => {
+    try {
+        const history = await db.examination_result.findAll({
+            where: { customer_id: customerId },
+            include: [
+                {
+                    model: db.appointment,
+                    as: 'appointment',
+                    where: { dentist_id: dentistId },
+                    required: false
+                },
+                {
+                    model: db.reappointment,
+                    as: 'reappointment',
+                    where: { dentist_id: dentistId },
+                    required: false
+                },
+            ],
+            order: [['result_date', 'DESC']],
+        });
+        return history;
+    } catch (error) {
+        console.error('Error fetching patient history:', error);
+        throw new Error('Failed to fetch patient history');
+    }
+};
+
+
+
 module.exports = {
     getAllDentists,
     searchDentistsByName,
     getDentistsByClinic,
     getSlotsForDate,
     getAvailableSlots,
-    getDentistWeeklySchedule
+    getDentistWeeklySchedule,
+    getDentistPatients,
+    getDentistPatientHistory,
+
 }

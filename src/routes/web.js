@@ -52,6 +52,12 @@ router.get('/admin/users/customers-clinicowners', authorizeAdmin, adminControlle
 
 router.get('/dentist/slots', authorizeDentist, dentistController.getSlotsForDate);
 router.get('/dentist/schedule', authorizeDentist, dentistController.getDentistWeeklySchedule);
+// Route to fetch dentist's patients
+router.get('/dentist/patients', authorizeDentist, dentistController.getDentistPatients);
+// Route to fetch patient's examination history
+router.get('/dentist/patients/:customerId/history', authorizeDentist, dentistController.getDentistPatientHistory);
+// Route to create examination result
+router.post('/dentist/examination-result', authorizeDentist, dentistController.createExaminationResult);
 
 
 router.get('/appointments/confirm/:appointmentId', appointmentController.confirmAppointment);

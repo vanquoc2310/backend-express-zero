@@ -14,6 +14,8 @@ async function createAppointment(customerId, clinicId, dentistId, serviceId, slo
             }
         });
 
+        if (existingSlot.current_patients >= 3) throw new Error('Slot is full');
+
         // If the slot does not exist, create a new one
         if (!existingSlot) {
             existingSlot = await db.dentist_slot.create({
@@ -23,8 +25,6 @@ async function createAppointment(customerId, clinicId, dentistId, serviceId, slo
                 current_patients: 0 // Initialize current_patients as 0
             });
         }
-
-        const formattedAppointmentDate = moment(appointmentDate).tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss.SSS');
 
 
         // Create a new appointment with status 'Pending'

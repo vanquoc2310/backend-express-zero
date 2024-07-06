@@ -41,9 +41,34 @@ const getDentistWeeklySchedule = async (req, res) => {
   }
 };
 
+const getDentistPatients = async (req, res) => {
+  const dentistId = req.user.userId; // assuming the logged-in dentist ID is in req.user.userId
+
+  try {
+      const patients = await dentistService.getDentistPatients(dentistId);
+      res.json(patients);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getDentistPatientHistory = async (req, res) => {
+  const dentistId = req.user.userId; // assuming the logged-in dentist ID is in req.user.userId
+  const { customerId } = req.params;
+
+  try {
+      const history = await dentistService.getDentistPatientHistory(dentistId, customerId);
+      res.json(history);
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+};
+
 
 module.exports = {
   getSlotsForDate,
   getAvailableSlotsForDate,
   getDentistWeeklySchedule,
+  getDentistPatients,
+  getDentistPatientHistory
 }
