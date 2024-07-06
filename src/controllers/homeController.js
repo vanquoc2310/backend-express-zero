@@ -156,9 +156,16 @@ const getDetailClinicPage = async (req, res) => {
             return res.status(404).json({ error: 'Clinic not found.' });
         }
 
-        // Logic to fetch additional data or process as needed
+        // Fetch feedbacks for the clinic
+        const feedbacks = await homeService.getFeedbackByClinicId(clinic.id);
 
-        return res.status(200).json({ clinic });
+        // Combine clinic data with feedbacks
+        const clinicWithFeedbacks = {
+            ...clinic.toJSON(),
+            feedbacks: feedbacks
+        };
+
+        return res.status(200).json({ clinic: clinicWithFeedbacks });
     } catch (e) {
         console.log(e);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -182,8 +189,6 @@ const getDentistsByClinic = async (req, res) => {
     }
 };
 
-
-
 module.exports = {
     getHomePage,
     getPageAllClinics,
@@ -197,7 +202,7 @@ module.exports = {
     postBookingDoctorPageWithoutFiles,
     postBookingDoctorPageNormal,
     getDetailClinicPage,
-    getDentistsByClinic
+    getDentistsByClinic,
 };
 
 

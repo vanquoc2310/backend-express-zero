@@ -165,6 +165,56 @@ const getClinicById = async (clinicId) => {
     }
 };
 
+const getFeedbackByClinicId = async (clinicId) => {
+    try {
+        const feedbacks = await db.feedback.findAll({
+            include: [
+                {
+                    model: db.examination_result,
+                    as: 'examination_result',
+                    include: [
+                        {
+                            model: db.appointment,
+                            as: 'appointment',
+                            required: false,
+                            where: {
+                                '$examination_result.appointment.clinic_id$': clinicId,
+                            },
+                            attributes: ['clinic_id']
+                        },
+                        {
+                            model: db.reappointment,
+                            as: 'reappointment',
+                            required: false,
+                            where: {
+                                '$examination_result.reappointment.clinic_id$': clinicId,
+                            },
+                            attributes: ['clinic_id']
+                        },
+                    ],
+                },
+            ],
+        });
+
+        if (!feedbacks || feedbacks.length === 0) {
+            throw new Error('No feedbacks found for this clinic');
+        }
+
+        // Filter out feedbacks with null appointment and reappointment
+        const filteredFeedbacks = feedbacks.filter(feedback => {
+            return feedback.examination_result.appointment || feedback.examination_result.reappointment;
+        });
+
+        return filteredFeedbacks;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+
+
+
 module.exports = {
     getServices,
     getClinics,
@@ -173,5 +223,6 @@ module.exports = {
     getDataPageAllDoctors,
     getDataPageAllServices,
     getServiceById,
-    getClinicById
+    getClinicById,
+    getFeedbackByClinicId
 };
