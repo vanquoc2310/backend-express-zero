@@ -205,13 +205,11 @@ const getDentistPatientHistory = async (dentistId, customerId) => {
                 {
                     model: db.appointment,
                     as: 'appointment',
-                    where: { dentist_id: dentistId },
                     required: false
                 },
                 {
                     model: db.reappointment,
                     as: 'reappointment',
-                    where: { dentist_id: dentistId },
                     required: false
                 },
             ],
@@ -224,6 +222,41 @@ const getDentistPatientHistory = async (dentistId, customerId) => {
     }
 };
 
+const createExaminationResult = async (appointmentId, result) => {
+    try {
+      let appointment = await db.appointment.findByPk(appointmentId);
+      let reappointment = null;
+  
+      if (!appointment) {
+        reappointment = await db.reappointment.findByPk(appointmentId);
+        if (!reappointment) {
+          throw new Error('Appointment or Reappointment not found.');
+        }
+      }
+  
+      const examinationResultData = {
+        result,
+        result_date: new Date(),
+        customer_id: appointment ? appointment.customer_id : reappointment.customer_id,
+      };
+  
+      if (appointment) {
+        examinationResultData.appointment_id = appointmentId;
+        await appointment.update({ status: 'Completed' });
+      } else {
+        examinationResultData.reappointment_id = appointmentId;
+        await reappointment.update({ status: 'Completed' });
+      }
+  
+      const examinationResult = await db.examination_result.create(examinationResultData);
+  
+      return examinationResult;
+    } catch (error) {
+      console.error('Error in createExaminationResult service:', error);
+      throw new Error('Failed to create examination result.');
+    }
+  };
+
 
 
 module.exports = {
@@ -235,5 +268,5 @@ module.exports = {
     getDentistWeeklySchedule,
     getDentistPatients,
     getDentistPatientHistory,
-
+    createExaminationResult
 }

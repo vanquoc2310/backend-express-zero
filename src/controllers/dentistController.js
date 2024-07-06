@@ -64,11 +64,26 @@ const getDentistPatientHistory = async (req, res) => {
   }
 };
 
+const createExaminationResult = async (req, res) => {
+  try {
+    const { appointmentId, result } = req.body;
+
+    // Call the service method to handle business logic
+    const examinationResult = await dentistService.createExaminationResult(appointmentId, result);
+
+    res.json(examinationResult);
+  } catch (error) {
+    console.error('Error creating examination result:', error);
+    res.status(500).json({ error: 'An error occurred while creating examination result.' });
+  }
+};
+
 
 module.exports = {
   getSlotsForDate,
   getAvailableSlotsForDate,
   getDentistWeeklySchedule,
   getDentistPatients,
-  getDentistPatientHistory
+  getDentistPatientHistory,
+  createExaminationResult
 }

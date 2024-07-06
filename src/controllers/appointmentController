@@ -1,6 +1,5 @@
 const appointmentService = require('../services/appointmentService');
 
-// Route to create a new appointment
 const createAppointment = async (req, res) => {
     const customerId = req.user.userId;
     const { clinicId, dentistId, serviceId, slotId, appointmentDate } = req.body;

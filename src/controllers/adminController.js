@@ -4,7 +4,7 @@ const adminService = require('../services/adminService');
 const clinicOwnerService = require('../services/clinicOwnerService');
 
 
-exports.getAllClinics = async (req, res) => {
+const getAllClinics = async (req, res) => {
     try {
         const clinics = await clinicService.getAllClinics();
         res.json(clinics);
@@ -14,7 +14,7 @@ exports.getAllClinics = async (req, res) => {
     }
 };
 
-exports.getAllDentists = async (req, res) => {
+const getAllDentists = async (req, res) => {
     try {
         const dentists = await dentistService.getAllDentists();
         res.json(dentists);
@@ -24,7 +24,7 @@ exports.getAllDentists = async (req, res) => {
     }
 };
 
-exports.createUser = async (req, res) => {
+const createUser = async (req, res) => {
     const { email, password, name, phonenumber, role_id, image, clinic_id } = req.body;
     try {
         const newUser = await adminService.createUser({ email, password, name, phonenumber, role_id, image, clinic_id });
@@ -35,7 +35,7 @@ exports.createUser = async (req, res) => {
     }
 };
 
-exports.updateUser = async (req, res) => {
+const updateUser = async (req, res) => {
     const { userId } = req.params;
     const { email, password, name, phonenumber, role_id, image, clinic_id } = req.body;
     try {
@@ -47,7 +47,7 @@ exports.updateUser = async (req, res) => {
     }
 };
 
-exports.deleteUser = async (req, res) => {
+const deleteUser = async (req, res) => {
     const { userId } = req.params;
     try {
         await adminService.deleteUser(userId);
@@ -59,7 +59,7 @@ exports.deleteUser = async (req, res) => {
 };
 
 
-exports.getCustomersAndClinicOwners = async (req, res) => {
+const getCustomersAndClinicOwners = async (req, res) => {
     try {
         const users = await adminService.getCustomersAndClinicOwners();
         res.status(200).json(users);
@@ -69,7 +69,7 @@ exports.getCustomersAndClinicOwners = async (req, res) => {
     }
 };
 
-exports.searchClinicsByName = async (req, res) => {
+const searchClinicsByName = async (req, res) => {
     try {
         const clinics = await clinicService.searchClinicsByName(req.query.name);
         res.json(clinics);
@@ -80,7 +80,7 @@ exports.searchClinicsByName = async (req, res) => {
 };
 
 
-exports.searchClinicOwnersByName = async (req, res) => {
+const searchClinicOwnersByName = async (req, res) => {
     try {
         const clinicOwners = await clinicOwnerService.searchClinicOwnersByName(req.query.name);
         res.json(clinicOwners);
@@ -89,3 +89,14 @@ exports.searchClinicOwnersByName = async (req, res) => {
         res.status(500).json({ error: 'Failed to search clinic owners' });
     }
 };
+
+module.exports = {
+    getAllClinics,
+    getAllDentists,
+    createUser,
+    updateUser,
+    deleteUser,
+    getCustomersAndClinicOwners,
+    searchClinicOwnersByName,
+    searchClinicsByName
+}

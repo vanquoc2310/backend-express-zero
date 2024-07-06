@@ -4,7 +4,7 @@ const { transMailBookingNew } = require('../../lang/eng');
 const { sendEmailNormal } = require('../config/mailer');
 
 
-async function createAppointment(customerId, clinicId, dentistId, serviceId, slotId, appointmentDate) {
+const createAppointment =  async (customerId, clinicId, dentistId, serviceId, slotId, appointmentDate) => {
     try {
         // Check if the dentist has a slot on the specified date
         let existingSlot = await db.dentist_slot.findOne({
@@ -57,7 +57,7 @@ async function createAppointment(customerId, clinicId, dentistId, serviceId, slo
         console.error('Error creating appointment:', error);
         throw new Error('Failed to create appointment');
     }
-}
+};
 
 
 const confirmAppointment = async (appointmentId) => {
