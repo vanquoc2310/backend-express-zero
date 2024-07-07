@@ -105,7 +105,7 @@ const getAvailableSlots = async (dentistId, date) => {
                     as: 'slot',
                     where: {
                         [db.Sequelize.Op.and]: [
-                            db.Sequelize.literal('dentist_slot.current_patients < slot.max_patients')
+                            db.Sequelize.literal('dentist_slot.current_patients <= slot.max_patients')
                         ]
                     }
                 }

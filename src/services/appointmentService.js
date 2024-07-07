@@ -12,7 +12,8 @@ const createAppointment = async (customerId, clinicId, dentistId, serviceId, slo
         let existingSlot = await db.dentist_slot.findOne({
             where: {
                 dentist_id: dentistId,
-                date: appointmentDate
+                date: appointmentDate,
+                slot_id: slotId
             }
         });
 
