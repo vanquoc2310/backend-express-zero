@@ -35,10 +35,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: true
     },
-    is_periodic: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true
-    },
     periodic_interval: {
       type: DataTypes.INTEGER,
       allowNull: true
@@ -62,6 +58,10 @@ module.exports = function(sequelize, DataTypes) {
     status: {
       type: DataTypes.STRING(255),
       allowNull: false
+    },
+    reappointment_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     }
   }, {
     sequelize,

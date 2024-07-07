@@ -52,6 +52,9 @@ router.get('/dentist/patients', authorizeDentist, dentistController.getDentistPa
 router.get('/dentist/patients/:customerId/history', authorizeDentist, dentistController.getDentistPatientHistory);
 // Route to create examination result
 router.post('/dentist/examination-result', authorizeDentist, dentistController.createExaminationResult);
+// Route to create Reappointment
+router.post('/dentist/reappointment', authorizeDentist, appointmentController.createReappointment);
+
 
 
 router.get('/appointments/confirm/:appointmentId', appointmentController.confirmAppointment);
