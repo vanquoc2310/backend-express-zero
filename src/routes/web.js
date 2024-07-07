@@ -24,7 +24,7 @@ router.get('/detail/doctor/:id', getDetailDoctorPage);
 
 router.get('/detail/clinic/:id', getDetailClinicPage);
 router.get('/clinic/:clinicId/dentists', getDentistsByClinic);
-router.get('/clinics/:clinicId/services', clinicController.getServicesByClinic);
+router.get('/clinic/:clinicId/services', clinicController.getServicesByClinic);
 
 router.put('/clinic-owner/clinic/update', putUpdateClinic);
 router.delete('/clinic-owner/clinic/delete', deleteClinicById);
@@ -59,6 +59,6 @@ router.post('/dentist/reappointment', authorizeDentist, appointmentController.cr
 
 router.get('/appointments/confirm/:appointmentId', appointmentController.confirmAppointment);
 router.post('/customer/create-appointment', authorizeLogin, appointmentController.createAppointment);
-router.get('/dentists/:dentistId/availble-slots', dentistController.getAvailableSlotsForDate);
+router.get('/dentists/:dentistId/available-slots', dentistController.getAvailableSlotsForDate);
 
 module.exports = router;

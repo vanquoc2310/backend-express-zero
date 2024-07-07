@@ -159,6 +159,13 @@ const getClinicById = async (clinicId) => {
         if (!clinic) {
             throw new Error('Clinic not found');
         }
+
+        // Format the start_time and end_time fields
+        clinic.clinic_schedules.forEach(schedule => {
+            schedule.start_time = new Date(schedule.start_time).toISOString().slice(11, 16);
+            schedule.end_time = new Date(schedule.end_time).toISOString().slice(11, 16);
+        });
+
         return clinic;
     } catch (error) {
         throw error;
