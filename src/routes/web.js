@@ -30,7 +30,7 @@ router.get('/detail/clinic/:id', getDetailClinicPage);
 router.get('/clinic/:clinicId/dentists', getDentistsByClinic);
 router.get('/clinic/:clinicId/services', clinicController.getServicesByClinic);
 
-
+// api clinic owner
 router.put('/clinic-owner/clinic/update', authorizeClinicOwner, putUpdateClinic);
 router.delete('/clinic-owner/clinic/delete', authorizeClinicOwner, deleteClinicById);
 router.post('/clinic-owner/clinic/create', authorizeClinicOwner, postCreateClinic);
@@ -42,7 +42,7 @@ router.post('/clinic-owner/clinic/dentists', authorizeClinicOwner, addDentist);
 router.put('/clinic-owner/clinic/dentists/:id', authorizeClinicOwner, updateDentist);
 router.delete('/clinic-owner/clinic/dentists/:id', authorizeClinicOwner, deleteDentist);
 
-
+//-----------------------------------------------------------
 
 
 
