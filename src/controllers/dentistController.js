@@ -53,7 +53,6 @@ const getDentistPatients = async (req, res) => {
 };
 
 const getDentistPatientHistory = async (req, res) => {
-  const dentistId = req.user.userId; // assuming the logged-in dentist ID is in req.user.userId
   const { customerId } = req.params;
 
   try {

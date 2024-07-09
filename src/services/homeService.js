@@ -129,59 +129,50 @@ const getServiceById = async (id) => {
     }
 };
 
-const getClinicById = async (clinicId) => {
+const getClinicByIdDetail = async (clinicId) => {
     try {
-      const clinic = await db.clinic.findOne({
-        where: { id: clinicId, status: true },
-        include: [
-          {
-            model: db.clinic_schedule,
-            as: 'clinic_schedules'
-          },
-          {
-            model: db.clinic_service,
-            as: 'clinic_services',
+        const clinic = await db.clinic.findOne({
+            where: { id: clinicId, status: true },
             include: [
-              {
-                model: db.service,
-                as: 'service'
-              }
+                {
+                    model: db.clinic_schedule,
+                    as: 'clinic_schedules'
+                },
+                {
+                    model: db.clinic_service,
+                    as: 'clinic_services',
+                    include: [
+                        {
+                            model: db.service,
+                            as: 'service'
+                        }
+                    ]
+                },
+                {
+                    model: db.user,
+                    as: 'clinic_owner',
+                    attributes: ['name', 'email']
+                },
             ]
-          },
-          {
-            model: db.user,
-            as: 'clinic_owner',
-            attributes: ['name', 'email']
-          },
-          {
-            model: db.dentist_info, // Include dentist_info model
-            as: 'dentist_infos',
-            include: [
-              {
-                model: db.user, // Assuming 'user' model represents dentists
-                as: 'dentist',
-                attributes: ['id', 'name', 'email'] // Specify the attributes you need
-              }
-            ]
-          }
-        ]
-      });
-  
-      if (!clinic) {
-        throw new Error('Clinic not found');
-      }
-  
-      // Format the start_time and end_time fields
-      clinic.clinic_schedules.forEach(schedule => {
-        schedule.start_time = new Date(schedule.start_time).toISOString().slice(11, 16);
-        schedule.end_time = new Date(schedule.end_time).toISOString().slice(11, 16);
-      });
-  
-      return clinic;
+        });
+
+        if (!clinic) {
+            throw new Error('Clinic not found');
+        }
+
+        // Format the start_time and end_time fields
+        clinic.clinic_schedules.forEach(schedule => {
+            schedule.start_time = new Date(schedule.start_time).toISOString().slice(11, 16);
+            schedule.end_time = new Date(schedule.end_time).toISOString().slice(11, 16);
+        });
+
+        return clinic;
     } catch (error) {
-      throw error;
+        throw error;
     }
-  };
+};
+
+
 
 const getFeedbackByClinicId = async (clinicId) => {
     try {
@@ -241,6 +232,6 @@ module.exports = {
     getDataPageAllDoctors,
     getDataPageAllServices,
     getServiceById,
-    getClinicById,
+    getClinicByIdDetail,
     getFeedbackByClinicId
 };

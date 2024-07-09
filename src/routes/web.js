@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { getHomePage, getPageAllClinics, getPageAllDoctors, getPageAllServices, postSearchHomePage, getDetailServicePage, getDetailDoctorPage, getDetailClinicPage, getDentistsByClinic } = require('../controllers/homeController');
-const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName } = require('../controllers/clinicOwnerController');
+const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName, addDentist, updateDentist, deleteDentist, getDentistsByClinicClinicOwner, getDetailClinicByClinicOwner } = require('../controllers/clinicOwnerController');
 const adminController = require('../controllers/adminController');
+const customerController = require('../controllers/customerController');
 const authorizeAdmin = require('../middleware/adminMiddleware');
 const dentistController = require('../controllers/dentistController');
 const authorizeDentist = require('../middleware/dentistMiddleware');
 const authorizeLogin = require('../middleware/authMiddleware');
 const appointmentController = require('../controllers/appointmentController');
 const clinicController = require('../controllers/clinicController');
+const authorizeClinicOwner = require('../middleware/clinicOwnerMiddleware');
+
+
 
 
 // Home routes
@@ -26,10 +30,20 @@ router.get('/detail/clinic/:id', getDetailClinicPage);
 router.get('/clinic/:clinicId/dentists', getDentistsByClinic);
 router.get('/clinic/:clinicId/services', clinicController.getServicesByClinic);
 
-router.put('/clinic-owner/clinic/update', putUpdateClinic);
-router.delete('/clinic-owner/clinic/delete', deleteClinicById);
-router.post('/clinic-owner/clinic/create', postCreateClinic);
-router.get('/clinic-owner/dentist/searchdentist', searchDentistsByName);
+
+router.put('/clinic-owner/clinic/update', authorizeClinicOwner, putUpdateClinic);
+router.delete('/clinic-owner/clinic/delete', authorizeClinicOwner, deleteClinicById);
+router.post('/clinic-owner/clinic/create', authorizeClinicOwner, postCreateClinic);
+
+router.get('/clinic-owner/clinic', authorizeClinicOwner, getDetailClinicByClinicOwner);
+router.get('/clinic-owner/clinic/dentists/searchdentist', authorizeClinicOwner, searchDentistsByName);
+router.get('/clinic-owner/clinic/dentists', authorizeClinicOwner, getDentistsByClinicClinicOwner);
+router.post('/clinic-owner/clinic/dentists', authorizeClinicOwner, addDentist);
+router.put('/clinic-owner/clinic/dentists/:id', authorizeClinicOwner, updateDentist);
+router.delete('/clinic-owner/clinic/dentists/:id', authorizeClinicOwner, deleteDentist);
+
+
+
 
 
 router.get('/admin/clinics', authorizeAdmin, adminController.getAllClinics);
@@ -54,11 +68,21 @@ router.get('/dentist/patients/:customerId/history', authorizeDentist, dentistCon
 router.post('/dentist/examination-result', authorizeDentist, dentistController.createExaminationResult);
 // Route to create Reappointment
 router.post('/dentist/reappointment', authorizeDentist, appointmentController.createReappointment);
+router.get('/dentists/:dentistId/available-slots', dentistController.getAvailableSlotsForDate);
 
 
 
 router.get('/appointments/confirm/:appointmentId', appointmentController.confirmAppointment);
 router.post('/customer/create-appointment', authorizeLogin, appointmentController.createAppointment);
-router.get('/dentists/:dentistId/available-slots', dentistController.getAvailableSlotsForDate);
+
+// route để get lịch khám mà chưa được khám 
+router.get('/customer/appointments', authorizeLogin, customerController.getPatientAppointments);
+
+// route để get tất cả kết quả khám trong quá khứ
+router.get('/customer/histories', authorizeLogin, customerController.getHistoryResult);
+
+// route để tạo feedback
+router.post('/customer/feedback/:id', authorizeLogin, customerController.createFeedback);
+
 
 module.exports = router;

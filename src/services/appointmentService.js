@@ -3,6 +3,7 @@ const moment = require('moment');
 const { transMailBookingNew } = require('../../lang/eng');
 const { sendEmailNormal } = require('../config/mailer');
 const momenttime = require('moment-timezone');
+const appointment = require('../models/appointment');
 
 
 
@@ -17,8 +18,6 @@ const createAppointment = async (customerId, clinicId, dentistId, serviceId, slo
             }
         });
 
-        if (existingSlot.current_patients >= 3) throw new Error('Slot is full');
-
         // If the slot does not exist, create a new one
         if (!existingSlot) {
             existingSlot = await db.dentist_slot.create({
@@ -29,6 +28,7 @@ const createAppointment = async (customerId, clinicId, dentistId, serviceId, slo
             });
         }
 
+        if (existingSlot.current_patients >= 3) throw new Error('Slot is full');
 
         // Create a new appointment with status 'Pending'
         const newAppointment = await db.appointment.create({
@@ -38,6 +38,7 @@ const createAppointment = async (customerId, clinicId, dentistId, serviceId, slo
             dentist_id: dentistId,
             service_id: serviceId,
             slot_id: slotId,
+            appointment_date: db.sequelize.literal(`CONVERT(datetime, '${appointmentDate}', 120)`)
         });
 
         // Send confirmation email to the customer
@@ -77,7 +78,15 @@ const confirmAppointment = async (appointmentId) => {
         await appointment.save();
 
         // Increase current_patients in dentist_slot by 1
-        const dentistSlot = await db.dentist_slot.findByPk(appointment.slot_id);
+        const appointmentDate = moment(appointment.appointment_date); // Convert to moment.js object
+        const dentistSlot = await db.dentist_slot.findOne({
+            where: {
+                dentist_id: appointment.dentist_id,
+                date: appointmentDate.format('YYYY-MM-DD'), // Format the date for comparison
+                slot_id: appointment.slot_id
+            }
+        });
+
         if (dentistSlot) {
             dentistSlot.current_patients += 1;
             await dentistSlot.save();
@@ -85,6 +94,7 @@ const confirmAppointment = async (appointmentId) => {
 
         return appointment;
     } catch (error) {
+        console.log(error);
         throw new Error('Error confirming appointment');
     }
 };
@@ -129,14 +139,11 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
 
         const { slot, customer, dentist, service, clinic } = appointment;
 
+        // Start from the last reappointment date or appointment date + 30 days
+        let currentDate = moment.tz(appointment.appointment_date, 'Asia/Ho_Chi_Minh').endOf('day').add(30, 'days').startOf('day');
+
         // Calculate the reappointment dates
         const reappointmentDates = [];
-        const dentistSlots = slot.dentist_slots; // Ensure to get all dentist_slots related to the slot
-
-        // Start from the beginning of the day
-        let currentDate = momenttime.tz(dentistSlots[0].date, 'Asia/Ho_Chi_Minh').startOf('day');
-        currentDate.add(periodicInterval, 'days');
-
 
         for (let i = 0; i < reappointmentCount; i++) {
             reappointmentDates.push(currentDate.clone()); // Use clone to prevent modification of original moment object
@@ -145,8 +152,6 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
 
         // Create reappointments and schedule dentist slots
         const createdReappointments = await Promise.all(reappointmentDates.map(async (date) => {
-            const currentDateTime = momenttime().format('YYYY-MM-DD HH:mm:ss');
-
             // Create reappointment
             const reappointment = await db.reappointment.create({
                 customer_id: customer.id,
@@ -154,7 +159,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
                 clinic_id: clinic.id,
                 service_id: service.id,
                 slot_id: slot.id,
-                reappointment_date: db.sequelize.literal(`CONVERT(datetime, '${currentDateTime}', 120)`),
+                reappointment_date: date.toDate(), // Convert moment object to Date
                 periodic_interval: periodicInterval,
                 status: 'Confirmed',
                 reappointment_count: reappointmentCount,
@@ -173,9 +178,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             if (existingSlot) {
                 // If slot exists, update current_patients by incrementing by 1
                 await existingSlot.increment('current_patients');
-            }
-
-            if (!existingSlot) {
+            } else {
                 // Create new dentist_slot if not exist
                 await db.dentist_slot.create({
                     dentist_id: dentist.id,

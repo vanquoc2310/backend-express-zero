@@ -1,7 +1,87 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 const moment = require('moment-timezone');
+const bcrypt = require('bcrypt');
 
+const addDentist = async (dentistData) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+        let { email, password, name, phonenumber, degree, description, clinic_id } = dentistData;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const activedDate = moment().format('YYYY-MM-DD');
+
+        // Create a new user
+        const newUser = await db.user.create({
+            email,
+            password: hashedPassword,
+            name,
+            phonenumber,
+            status: true,
+            role_id: 3,
+        }, { transaction });
+
+        // Create a new dentist_info record
+        const newDentistInfo = await db.dentist_info.create({
+            dentist_id: newUser.id,
+            clinic_id,
+            degree,
+            description,
+            actived_date: activedDate
+        }, { transaction });
+
+        await transaction.commit();
+        return { newUser, newDentistInfo };
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+}
+
+const updateDentist = async (dentistId, dentistData) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+        const { email, name, phonenumber, status, degree, description } = dentistData;
+
+        // Update user
+        const updatedUser = await db.user.update({
+            email,
+            name,
+            phonenumber,
+            status
+        }, {
+            where: { id: dentistId },
+            transaction
+        });
+
+        // Update dentist_info
+        const updatedDentistInfo = await db.dentist_info.update({
+            degree,
+            description
+        }, {
+            where: { dentist_id: dentistId },
+            transaction
+        });
+
+        await transaction.commit();
+        return { updatedUser, updatedDentistInfo };
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+}
+
+const deleteDentist = async (dentistId) => {
+    try {
+        // Soft delete the user by setting status to false
+        const updatedUser = await db.user.update({ status: false }, {
+            where: { id: dentistId }
+        });
+        return updatedUser;
+    } catch (error) {
+        throw error;
+    }
+}
 
 const getAllDentists = async () => {
     return db.user.findAll({
@@ -56,10 +136,30 @@ const getDentistsByClinic = async (clinicId) => {
                     {
                         model: db.user,
                         as: 'dentist',
+                        where: { status: true }
                     }
                 ]
             }
         ]
+    });
+};
+
+const getDentistsByClinicOwner = async (clinicId) => {
+    return db.clinic.findAll({
+        where: { id: clinicId, status: true },
+        include: [
+            {
+                model: db.dentist_info,
+                as: 'dentist_infos',
+                include: [
+                    {
+                        model: db.user,
+                        as: 'dentist',
+                    }
+                ]
+            }
+        ],
+        attributes: ['id']
     });
 };
 
@@ -82,8 +182,8 @@ const getSlotsForDate = async (dentistId, date) => {
         return slots.map(ds => {
             return {
                 slotId: ds.slot.id,
-                startTime: ds.slot.start_time, 
-                endTime: ds.slot.end_time,     
+                startTime: ds.slot.start_time,
+                endTime: ds.slot.end_time,
                 currentPatients: ds.current_patients,
             };
         });
@@ -204,7 +304,7 @@ const getDentistPatients = async (dentistId) => {
             ...appointments.map(appointment => ({
                 type: 'Appointment',
                 customer: appointment.customer,
-                date: appointment.slot.date,
+                date: appointment.appointment_date,
                 clinic_id: appointment.clinic_id,
                 service_id: appointment.service_id,
                 slot: {
@@ -216,7 +316,7 @@ const getDentistPatients = async (dentistId) => {
             ...reappointments.map(reappointment => ({
                 type: 'Reappointment',
                 customer: reappointment.customer,
-                date: reappointment.slot.date,
+                date: reappointment.reappointment_date,
                 clinic_id: reappointment.clinic_id,
                 service_id: reappointment.service_id,
                 slot: {
@@ -235,16 +335,8 @@ const getDentistPatients = async (dentistId) => {
             return a.slot.id - b.slot.id;
         });
 
-        // Use a Map to remove duplicate patients based on patient ID
-        const uniquePatientsMap = new Map();
-        allPatients.forEach(patient => {
-            uniquePatientsMap.set(patient.customer.id, patient);
-        });
 
-        // Convert the Map back to an array of unique patients
-        const uniquePatients = Array.from(uniquePatientsMap.values());
-
-        return uniquePatients;
+        return allPatients;
     } catch (error) {
         console.error('Error fetching dentist patients:', error);
         throw new Error('Failed to fetch dentist patients');
@@ -253,7 +345,7 @@ const getDentistPatients = async (dentistId) => {
 
 
 
-const getDentistPatientHistory = async (dentistId, customerId) => {
+const getDentistPatientHistory = async (customerId) => {
     try {
         const history = await db.examination_result.findAll({
             where: { customer_id: customerId },
@@ -286,47 +378,50 @@ const getDentistPatientHistory = async (dentistId, customerId) => {
 
 const createExaminationResult = async (appointmentId, result) => {
     try {
-      let appointment = await db.appointment.findByPk(appointmentId);
-      let reappointment = null;
-  
-      if (!appointment) {
-        reappointment = await db.reappointment.findByPk(appointmentId);
-        if (!reappointment) {
-          throw new Error('Appointment or Reappointment not found.');
+        let appointment = await db.appointment.findByPk(appointmentId);
+        let reappointment = null;
+
+        if (!appointment) {
+            reappointment = await db.reappointment.findByPk(appointmentId);
+            if (!reappointment) {
+                throw new Error('Appointment or Reappointment not found.');
+            }
         }
-      }
 
-       // Lấy ngày giờ hiện tại theo múi giờ Việt Nam
-       const resultDate = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
+        // Lấy ngày giờ hiện tại theo múi giờ Việt Nam
+        const resultDate = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
 
-       const examinationResultData = {
-           result,
-           result_date: db.sequelize.literal(`CONVERT(datetime, '${resultDate}', 120)`), // Assuming SQL Server
-           customer_id: appointment ? appointment.customer_id : reappointment.customer_id,
-       };
-  
-      if (appointment) {
-        examinationResultData.appointment_id = appointmentId;
-        await appointment.update({ status: 'Completed' });
-      } else {
-        examinationResultData.reappointment_id = appointmentId;
-        await reappointment.update({ status: 'Completed' });
-      }
-  
-      const examinationResult = await db.examination_result.create(examinationResultData);
-  
-      return examinationResult;
+        const examinationResultData = {
+            result,
+            result_date: db.sequelize.literal(`CONVERT(datetime, '${resultDate}', 120)`), // Assuming SQL Server
+            customer_id: appointment ? appointment.customer_id : reappointment.customer_id,
+        };
+
+        if (appointment) {
+            examinationResultData.appointment_id = appointmentId;
+            await appointment.update({ status: 'Completed' });
+        } else {
+            examinationResultData.reappointment_id = appointmentId;
+            await reappointment.update({ status: 'Completed' });
+        }
+
+        const examinationResult = await db.examination_result.create(examinationResultData);
+
+        return examinationResult;
     } catch (error) {
-      console.error('Error in createExaminationResult service:', error);
-      throw new Error('Failed to create examination result.');
+        console.error('Error in createExaminationResult service:', error);
+        throw new Error('Failed to create examination result.');
     }
-  };
+};
 
-  
+
 
 
 
 module.exports = {
+    addDentist,
+    updateDentist,
+    deleteDentist,
     getAllDentists,
     searchDentistsByName,
     getDentistsByClinic,
@@ -335,5 +430,6 @@ module.exports = {
     getDentistWeeklySchedule,
     getDentistPatients,
     getDentistPatientHistory,
-    createExaminationResult
+    createExaminationResult,
+    getDentistsByClinicOwner
 }

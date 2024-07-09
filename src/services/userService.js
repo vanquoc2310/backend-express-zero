@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const db = require("./../models");
+const moment = require('moment-timezone');
+
 
 
 
@@ -178,24 +180,24 @@ const findUserById = async (userId) => {
 
 const getDoctorById = async (id) => {
   try {
-      const doctor = await db.user.findOne({
-          where: { id: id, role_id: 3 },
-          include: [
-              {
-                  model: db.dentist_info,
-                  as: 'dentist_info',
-                  include: [{ model: db.clinic, as: 'clinic' , attributes: ['name'] }]
-              }
-          ]
-      });
+    const doctor = await db.user.findOne({
+      where: { id: id, role_id: 3 },
+      include: [
+        {
+          model: db.dentist_info,
+          as: 'dentist_info',
+          include: [{ model: db.clinic, as: 'clinic', attributes: ['name'] }]
+        }
+      ]
+    });
 
-      if (!doctor) {
-          throw new Error('Doctor not found');
-      }
+    if (!doctor) {
+      throw new Error('Doctor not found');
+    }
 
-      return doctor;
+    return doctor;
   } catch (error) {
-      throw error;
+    throw error;
   }
 };
 
@@ -229,6 +231,190 @@ async function getTopDentists() {
   }
 }
 
+const getHistoryResult = async (customerId) => {
+  try {
+    const history = await db.examination_result.findAll({
+      where: { customer_id: customerId },
+      attributes: ['id', 'result', 'result_date'],
+      include: [
+        {
+          model: db.appointment,
+          as: 'appointment',
+          attributes: ['clinic_id', 'slot_id', 'dentist_id'],
+          required: false,
+          include: [
+            {
+              model: db.slot,
+              as: 'slot',
+              attributes: ['start_time', 'end_time'], // Lấy các thuộc tính start_time và end_time của slot
+            },
+            {
+              model: db.user,
+              as: 'dentist',
+              attributes: ['name'], // Chỉ lấy trường name của bác sĩ
+            },
+            {
+              model: db.clinic,
+              as: 'clinic',
+              attributes: ['name'], // Chỉ lấy trường name của clinic
+            },
+          ],
+        },
+        {
+          model: db.reappointment,
+          as: 'reappointment',
+          attributes: ['clinic_id', 'slot_id', 'dentist_id'],
+          required: false,
+          include: [
+            {
+              model: db.slot,
+              as: 'slot',
+              attributes: ['start_time', 'end_time'], // Lấy các thuộc tính start_time và end_time của slot
+            },
+            {
+              model: db.user,
+              as: 'dentist',
+              attributes: ['name'], // Chỉ lấy trường name của bác sĩ
+            },
+            {
+              model: db.clinic,
+              as: 'clinic',
+              attributes: ['name'], // Chỉ lấy trường name của clinic
+            },
+          ],
+        },
+      ],
+      order: [['result_date', 'DESC']],
+    });
+
+    // Định dạng lại result_date trước khi trả về
+    const formattedHistory = history.map(entry => ({
+      ...entry.toJSON(),
+      result_date: new Date(entry.result_date).toLocaleString('en-US', { timeZone: 'UTC' }) // Định dạng theo yêu cầu
+    }));
+
+    return formattedHistory;
+  } catch (error) {
+    console.error('Error fetching patient history:', error);
+    throw new Error('Failed to fetch patient history');
+  }
+};
+
+
+const createFeedback = async (feedbackData) => {
+  try {
+    const { customer_id, rating, feedback_text, examination_result_id } = feedbackData;
+
+    // Chuyển đổi ngày giờ thành định dạng không có múi giờ
+    const feedback_date = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
+
+    console.log("Formatted Feedback Date:", feedback_date); // Debug line to check formatted date
+
+    const newFeedback = await db.feedback.create({
+      customer_id,
+      rating,
+      feedback_text,
+      feedback_date: db.sequelize.literal(`CONVERT(datetime, '${feedback_date}', 120)`),
+      examination_result_id
+    });
+
+    return newFeedback;
+  } catch (error) {
+    console.error("Error in createFeedback:", error); // Debug line to log the error
+    throw error;
+  }
+}
+
+const getPatientAppointments = async (userId) => {
+  try {
+    // Fetch all appointments for the patient
+    const appointments = await db.appointment.findAll({
+      where: {
+        customer_id: userId,
+        status: 'Confirmed'
+      },
+      include: [
+        {
+          model: db.clinic,
+          as: 'clinic',
+          attributes: ['id', 'name']
+        },
+        {
+          model: db.user,
+          as: 'dentist',
+          attributes: ['id', 'name']
+        },
+        {
+          model: db.service,
+          as: 'service',
+          attributes: ['id', 'name']
+        },
+        {
+          model: db.slot,
+          as: 'slot',
+          attributes: ['id', 'start_time', 'end_time']
+        }
+      ],
+      attributes: ['id', 'appointment_date'],
+    });
+
+    // Fetch all reappointments for the patient
+    const reappointments = await db.reappointment.findAll({
+      where: {
+        customer_id: userId,
+      },
+      include: [
+        {
+          model: db.clinic,
+          as: 'clinic',
+          attributes: ['id', 'name']
+        },
+        {
+          model: db.user,
+          as: 'dentist',
+          attributes: ['id', 'name']
+        },
+        {
+          model: db.service,
+          as: 'service',
+          attributes: ['id', 'name']
+        },
+        {
+          model: db.slot,
+          as: 'slot',
+          attributes: ['id', 'start_time', 'end_time']
+        }
+      ],
+      attributes: ['id', 'reappointment_date'],
+    });
+
+    // Combine both appointments and reappointments into a single array
+    const allAppointments = [...appointments, ...reappointments];
+
+    // Initialize an array to hold the final results
+    const result = [];
+
+    for (const app of allAppointments) {
+      const date = app.appointment_date || app.reappointment_date;
+
+      result.push({
+        type: app instanceof db.appointment ? 'appointment' : 'reappointment',
+        id: app.id,
+        clinic: app.clinic,
+        dentist: app.dentist,
+        service: app.service,
+        slot: app.slot,
+        date: moment(date).format('YYYY-MM-DD'), // Format date if needed
+      });
+    }
+
+    // Return the result array
+    return result;
+  } catch (error) {
+    console.error('Error fetching appointments for patient:', error);
+    throw error;
+  }
+};
 
 module.exports = {
   findUserByEmail,
@@ -237,9 +423,13 @@ module.exports = {
   sendVerificationEmail,
   createPasswordResetLink,
   verifyResetToken,
-  findUserById, 
+  findUserById,
   //getInfoDoctors, 
   getDoctorById,
   findUserByPhoneNumber,
   getTopDentists,
+  getHistoryResult,
+  createFeedback,
+  getPatientAppointments
 }
+

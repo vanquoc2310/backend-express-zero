@@ -150,8 +150,9 @@ const postBookingDoctorPageNormal = async (req, res) => {
 
 const getDetailClinicPage = async (req, res) => {
     try {
-        const { id } = req.params;
-        const clinic = await homeService.getClinicById(id);
+        let { id } = req.params;
+        if (id === undefined) id = req.user.clinicId;
+        const clinic = await homeService.getClinicByIdDetail(id);
         if (!clinic) {
             return res.status(404).json({ error: 'Clinic not found.' });
         }
@@ -172,9 +173,13 @@ const getDetailClinicPage = async (req, res) => {
     }
 };
 
+
 const getDentistsByClinic = async (req, res) => {
     try {
-        const { clinicId } = req.params;
+        let { clinicId } = req.params;
+
+        if (clinicId === undefined) clinicId = req.user.clinicId;
+        
         const clinic = await dentistService.getDentistsByClinic(clinicId)
         if (!clinic) {
             return res.status(404).json({ error: 'Dentists of this clinic not found.' });

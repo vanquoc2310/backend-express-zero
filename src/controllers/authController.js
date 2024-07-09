@@ -2,6 +2,7 @@ const userService = require('../services/userService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/').user;
+const db = require("./../models");
 
 
 const register = async (req, res) => {
@@ -57,10 +58,19 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Account is not actived' });
     }
 
+    let clinicId = null;
+    if (user.role_id === 4) {
+      const clinic = await db.clinic.findOne({ where: { clinic_owner_id: user.id } });
+      if (clinic) {
+        clinicId = clinic.id;
+      }
+    }
+
     const payload = {
       userId: user.id,
       role: user.role_id,  // Assuming role_id represents the role of the user
       iat: Math.floor(Date.now() / 1000),  // Issued at time
+      clinicId : clinicId,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {});

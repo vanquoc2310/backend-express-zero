@@ -32,8 +32,8 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     reappointment_date: {
-      type: DataTypes.DATE,
-      allowNull: true
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
     periodic_interval: {
       type: DataTypes.INTEGER,
