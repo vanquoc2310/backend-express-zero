@@ -313,7 +313,6 @@ const getDentistPatients = async (dentistId) => {
         const allPatients = [
             ...appointments.map(appointment => ({
                 type: 'Appointment',
-                appointmentId: appointment.id,
                 customer: appointment.customer,
                 date: appointment.appointment_date,
                 clinic_id: appointment.clinic_id,
@@ -327,7 +326,6 @@ const getDentistPatients = async (dentistId) => {
             })),
             ...reappointments.map(reappointment => ({
                 type: 'Reappointment',
-                appointmentId: reappointment.id,
                 customer: reappointment.customer,
                 date: reappointment.reappointment_date,
                 clinic_id: reappointment.clinic_id,

@@ -154,9 +154,9 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             currentDate.add(periodicInterval, 'days');
         }
 
-        const currentDate1 = moment().format('YYYY-MM-DD');
-        const pdfFilename = `reappointments_${clinic.name}_${currentDate1}.pdf`;
-        const pdfPath = `C:/Users/84868/Downloads/reappointments/reappointment_${appointmentId}_${currentDate1}.pdf`;
+        // Generate PDF content
+        const pdfFilename = `reappointments_${clinic.name}_${moment().format('YYYY-MM-DD')}.pdf`;
+        const pdfPath = `C:/Users/84868/Downloads/reappointments/${pdfFilename}`;
 
         const doc = new PDFDocument();
         const stream = fs.createWriteStream(pdfPath);
@@ -164,25 +164,37 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
         doc.pipe(stream);
 
         // Write PDF content
-        doc.fontSize(14).text('Reappointment Details', { align: 'center' }).moveDown(0.5);
+        doc.font('Times-Roman').fontSize(16).text('Chi tiết lịch tái khám', { align: 'center' }).moveDown(0.5);
 
         reappointmentDates.forEach((date, index) => {
-            doc.fontSize(12).text(`Reappointment ${index + 1}`, { underline: true }).moveDown(0.5);
-            doc.fontSize(10).text(`Customer: ${customer.name}`);
-            doc.fontSize(10).text(`Dentist: ${dentist.name}`);
-            doc.fontSize(10).text(`Clinic: ${clinic.name}`);
-            doc.fontSize(10).text(`Service: ${service.name}`);
-            doc.fontSize(10).text(`Reappointment Date: ${moment(date).format('YYYY-MM-DD')}`);
-            doc.fontSize(10).text(`Time: ${slot.start_time} - ${slot.end_time}\n`);
+            doc.fontSize(12).text(`Lịch tái khám ${index + 1}`, { underline: true }).moveDown(0.5);
+            doc.fontSize(10).text(`Khách hàng: ${customer.name}`);
+            doc.fontSize(10).text(`Bác sĩ: ${dentist.name}`);
+            doc.fontSize(10).text(`Phòng khám: ${clinic.name}`);
+            doc.fontSize(10).text(`Dịch vụ: ${service.name}`);
+            doc.fontSize(10).text(`Ngày tái khám: ${moment(date).format('YYYY-MM-DD')}`);
+            doc.fontSize(10).text(`Thời gian: ${slot.start_time} - ${slot.end_time}\n`);
             doc.moveDown(1);
         });
+
+        // Thank you note
+        doc.fontSize(12).text('Chúng tôi chân thành cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.', { align: 'center' }).moveDown(1);
 
         // Finalize PDF
         doc.end();
 
         // Send email with attachment
-        const emailSubject = 'Your Reappointment Details';
-        const emailContent = `Dear ${customer.name},\n\nYour reappointment details are attached.`;
+        const emailSubject = 'Thông tin lịch tái khám của bạn';
+        const emailContent = `
+            Chào bạn ${customer.name},
+
+            Bạn vừa đặt lịch tái khám tại bệnh viện chúng tôi. Thông tin chi tiết lịch tái khám của bạn đính kèm trong file PDF đính kèm.
+
+            Trân trọng cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.
+
+            Thân ái,
+            Đội ngũ Phòng Khám ${clinic.name}
+        `;
 
         try {
             await sendEmailWithAttachment(customer.email, emailSubject, emailContent, pdfFilename, pdfPath);
@@ -191,7 +203,49 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             // Handle email sending error here
         }
 
-        return pdfPath;
+        // Create reappointments and schedule dentist slots
+        const createdReappointments = await Promise.all(reappointmentDates.map(async (date) => {
+            // Create reappointment
+            const reappointment = await db.reappointment.create({
+                customer_id: customer.id,
+                dentist_id: dentist.id,
+                clinic_id: clinic.id,
+                service_id: service.id,
+                slot_id: slot.id,
+                reappointment_date: date.toDate(), // Convert moment object to Date
+                periodic_interval: periodicInterval,
+                status: 'Confirmed',
+                reappointment_count: reappointmentCount,
+            });
+
+            // Schedule dentist slot (check and create if not exist)
+            const formattedDate = date.format('YYYY-MM-DD');
+            const existingSlot = await db.dentist_slot.findOne({
+                where: {
+                    dentist_id: dentist.id,
+                    slot_id: slot.id,
+                    date: formattedDate, // Only check for date without time part
+                }
+            });
+
+            if (existingSlot) {
+                // If slot exists, update current_patients by incrementing by 1
+                await existingSlot.increment('current_patients');
+            } else {
+                // Create new dentist_slot if not exist
+                await db.dentist_slot.create({
+                    dentist_id: dentist.id,
+                    slot_id: slot.id,
+                    date: formattedDate, // Use the new calculated date
+                    current_patients: 1, // Assuming initial patients count is 1
+                });
+            }
+
+            return reappointment;
+        }));
+
+        // Return created reappointments
+        return createdReappointments;
     } catch (error) {
         console.error('Error in createReappointment service:', error);
         throw new Error('Failed to create reappointment');
@@ -199,8 +253,11 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
 };
 
 
+
+
 module.exports = {
     createAppointment,
     confirmAppointment,
     createReappointment
 };
+
