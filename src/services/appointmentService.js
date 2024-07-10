@@ -5,6 +5,8 @@ const { sendEmailNormal, sendEmailWithAttachment } = require('../config/mailer')
 const momenttime = require('moment-timezone');
 const appointment = require('../models/appointment');
 const PDFDocument = require('pdfkit');
+const fs = require('fs');
+
 
 
 
@@ -152,9 +154,9 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             currentDate.add(periodicInterval, 'days');
         }
 
-        // Create PDF content
-        const pdfFilename = `reappointments_${appointmentId}.pdf`; // Example filename
-        const pdfPath = `/path/to/save/pdf/${pdfFilename}`; // Replace with your desired path
+        const currentDate1 = moment().format('YYYY-MM-DD');
+        const pdfFilename = `reappointments_${clinic.name}_${currentDate1}.pdf`;
+        const pdfPath = `C:/Users/84868/Downloads/reappointments/reappointment_${appointmentId}_${currentDate1}.pdf`;
 
         const doc = new PDFDocument();
         const stream = fs.createWriteStream(pdfPath);
@@ -171,7 +173,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             doc.fontSize(10).text(`Clinic: ${clinic.name}`);
             doc.fontSize(10).text(`Service: ${service.name}`);
             doc.fontSize(10).text(`Reappointment Date: ${moment(date).format('YYYY-MM-DD')}`);
-            doc.fontSize(10).text(`Slot Time: ${moment(slot.start_time).format('HH:mm')} - ${moment(slot.end_time).format('HH:mm')}`);
+            doc.fontSize(10).text(`Time: ${slot.start_time} - ${slot.end_time}\n`);
             doc.moveDown(1);
         });
 
