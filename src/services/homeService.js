@@ -151,6 +151,17 @@ const getClinicByIdDetail = async (clinicId) => {
                     ]
                 },
                 {
+                    model: db.dentist_info,
+                    as: 'dentist_infos',
+                    include: [
+                        {
+                            model: db.user,
+                            as: 'dentist',
+                            attributes: ['name']
+                        }
+                    ]
+                },
+                {
                     model: db.user,
                     as: 'clinic_owner',
                     attributes: ['name', 'email']

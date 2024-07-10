@@ -1,9 +1,11 @@
 const db = require('../models');
 const moment = require('moment');
 const { transMailBookingNew } = require('../../lang/eng');
-const { sendEmailNormal } = require('../config/mailer');
+const { sendEmailNormal, sendEmailWithAttachment } = require('../config/mailer');
 const momenttime = require('moment-timezone');
 const appointment = require('../models/appointment');
+const PDFDocument = require('pdfkit');
+
 
 
 
@@ -150,48 +152,44 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             currentDate.add(periodicInterval, 'days');
         }
 
-        // Create reappointments and schedule dentist slots
-        const createdReappointments = await Promise.all(reappointmentDates.map(async (date) => {
-            // Create reappointment
-            const reappointment = await db.reappointment.create({
-                customer_id: customer.id,
-                dentist_id: dentist.id,
-                clinic_id: clinic.id,
-                service_id: service.id,
-                slot_id: slot.id,
-                reappointment_date: date.toDate(), // Convert moment object to Date
-                periodic_interval: periodicInterval,
-                status: 'Confirmed',
-                reappointment_count: reappointmentCount,
-            });
+        // Create PDF content
+        const pdfFilename = `reappointments_${appointmentId}.pdf`; // Example filename
+        const pdfPath = `/path/to/save/pdf/${pdfFilename}`; // Replace with your desired path
 
-            // Schedule dentist slot (check and create if not exist)
-            const formattedDate = date.format('YYYY-MM-DD');
-            const existingSlot = await db.dentist_slot.findOne({
-                where: {
-                    dentist_id: dentist.id,
-                    slot_id: slot.id,
-                    date: formattedDate, // Only check for date without time part
-                }
-            });
+        const doc = new PDFDocument();
+        const stream = fs.createWriteStream(pdfPath);
 
-            if (existingSlot) {
-                // If slot exists, update current_patients by incrementing by 1
-                await existingSlot.increment('current_patients');
-            } else {
-                // Create new dentist_slot if not exist
-                await db.dentist_slot.create({
-                    dentist_id: dentist.id,
-                    slot_id: slot.id,
-                    date: formattedDate, // Use the new calculated date
-                    current_patients: 1, // Assuming initial patients count is 1
-                });
-            }
+        doc.pipe(stream);
 
-            return reappointment;
-        }));
+        // Write PDF content
+        doc.fontSize(14).text('Reappointment Details', { align: 'center' }).moveDown(0.5);
 
-        return createdReappointments;
+        reappointmentDates.forEach((date, index) => {
+            doc.fontSize(12).text(`Reappointment ${index + 1}`, { underline: true }).moveDown(0.5);
+            doc.fontSize(10).text(`Customer: ${customer.name}`);
+            doc.fontSize(10).text(`Dentist: ${dentist.name}`);
+            doc.fontSize(10).text(`Clinic: ${clinic.name}`);
+            doc.fontSize(10).text(`Service: ${service.name}`);
+            doc.fontSize(10).text(`Reappointment Date: ${moment(date).format('YYYY-MM-DD')}`);
+            doc.fontSize(10).text(`Slot Time: ${moment(slot.start_time).format('HH:mm')} - ${moment(slot.end_time).format('HH:mm')}`);
+            doc.moveDown(1);
+        });
+
+        // Finalize PDF
+        doc.end();
+
+        // Send email with attachment
+        const emailSubject = 'Your Reappointment Details';
+        const emailContent = `Dear ${customer.name},\n\nYour reappointment details are attached.`;
+
+        try {
+            await sendEmailWithAttachment(customer.email, emailSubject, emailContent, pdfFilename, pdfPath);
+        } catch (error) {
+            console.error('Error sending reappointment email:', error);
+            // Handle email sending error here
+        }
+
+        return pdfPath;
     } catch (error) {
         console.error('Error in createReappointment service:', error);
         throw new Error('Failed to create reappointment');
