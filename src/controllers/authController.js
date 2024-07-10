@@ -126,11 +126,23 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const logout = (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.sendStatus(401);  // Nếu không có token, trả về Unauthorized
+
+  userService.logout(token);  // Thêm token vào blacklist
+
+  res.json({ message: 'Logged out successfully' });
+};
+
 
 module.exports = {
   login,
   register,
   verifyEmail,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
+  logout,
 };

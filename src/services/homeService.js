@@ -172,8 +172,6 @@ const getClinicByIdDetail = async (clinicId) => {
     }
 };
 
-
-
 const getFeedbackByClinicId = async (clinicId) => {
     try {
         const feedbacks = await db.feedback.findAll({
@@ -199,14 +197,20 @@ const getFeedbackByClinicId = async (clinicId) => {
                                 '$examination_result.reappointment.clinic_id$': clinicId,
                             },
                             attributes: ['clinic_id']
-                        },
-                    ],
+                        }
+                    ]
                 },
+                {
+                    model: db.user,
+                    as: 'customer',
+                    attributes: ['name'],
+                    required: true // Ensures that the customer information is included
+                }
             ],
         });
 
         if (!feedbacks || feedbacks.length === 0) {
-            throw new Error('No feedbacks found for this clinic');
+            return { message: 'No feedbacks found for this clinic' };
         }
 
         // Filter out feedbacks with null appointment and reappointment
@@ -214,14 +218,15 @@ const getFeedbackByClinicId = async (clinicId) => {
             return feedback.examination_result.appointment || feedback.examination_result.reappointment;
         });
 
+        if (filteredFeedbacks.length === 0) {
+            return { message: 'No feedbacks found for this clinic' };
+        }
+
         return filteredFeedbacks;
     } catch (error) {
-        throw error;
+        return { error: 'Error retrieving feedbacks' };
     }
 };
-
-
-
 
 
 module.exports = {

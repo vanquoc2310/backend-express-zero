@@ -416,6 +416,16 @@ const getPatientAppointments = async (userId) => {
   }
 };
 
+const blacklist = [];
+
+const logout = (token) => {
+  blacklist.push(token);
+};
+
+const isTokenBlacklisted = (token) => {
+  return blacklist.includes(token);
+};
+
 module.exports = {
   findUserByEmail,
   resetPassword,
@@ -430,6 +440,8 @@ module.exports = {
   getTopDentists,
   getHistoryResult,
   createFeedback,
-  getPatientAppointments
+  getPatientAppointments,
+  logout,
+  isTokenBlacklisted,
 }
 
