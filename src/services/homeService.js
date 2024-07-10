@@ -2,6 +2,8 @@ require('dotenv').config();
 const db = require("./../models");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const moment = require('moment');
+
 
 const getServices = async () => {
     try {
@@ -222,7 +224,13 @@ const getFeedbackByClinicId = async (clinicId) => {
             return { message: 'No feedbacks found for this clinic' };
         }
 
-        return filteredFeedbacks;
+         // Map through feedbacks and format feedback_date
+         const formattedFeedbacks = feedbacks.map(feedback => ({
+            ...feedback.toJSON(),  // Convert Sequelize instance to plain JSON object
+            feedback_date: feedback.feedback_date.toISOString().slice(0, 10)  // Get first 10 characters (YYYY-MM-DD)
+        }));
+
+        return formattedFeedbacks;
     } catch (error) {
         return { error: 'Error retrieving feedbacks' };
     }
