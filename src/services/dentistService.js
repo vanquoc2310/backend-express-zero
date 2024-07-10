@@ -278,6 +278,11 @@ const getDentistPatients = async (dentistId) => {
                     model: db.slot,
                     as: 'slot',
                     attributes: ['id', 'start_time', 'end_time']
+                },
+                {
+                    model: db.service,
+                    as: 'service',
+                    attributes: ['id', 'name']
                 }
             ],
         });
@@ -295,6 +300,11 @@ const getDentistPatients = async (dentistId) => {
                     model: db.slot,
                     as: 'slot',
                     attributes: ['id', 'start_time', 'end_time']
+                },
+                {
+                    model: db.service,
+                    as: 'service',
+                    attributes: ['id', 'name']
                 }
             ],
         });
@@ -311,7 +321,8 @@ const getDentistPatients = async (dentistId) => {
                     id: appointment.slot.id,
                     start_time: appointment.slot.start_time,
                     end_time: appointment.slot.end_time
-                }
+                },
+                serviceName: appointment.service.name
             })),
             ...reappointments.map(reappointment => ({
                 type: 'Reappointment',
@@ -323,7 +334,8 @@ const getDentistPatients = async (dentistId) => {
                     id: reappointment.slot.id,
                     start_time: reappointment.slot.start_time,
                     end_time: reappointment.slot.end_time
-                }
+                },
+                serviceName: reappointment.service.name 
             }))
         ];
 
