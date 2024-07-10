@@ -158,7 +158,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
         const pdfFilename = `reappointments_${clinic.name}_${moment().format('YYYY-MM-DD')}.pdf`;
         const pdfPath = `C:/Users/84868/Downloads/reappointments/${pdfFilename}`;
 
-        const doc = new PDFDocument();
+        const doc = new PDFDocument({ bufferPages: true });
         const stream = fs.createWriteStream(pdfPath);
 
         doc.pipe(stream);

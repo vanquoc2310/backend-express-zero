@@ -322,7 +322,8 @@ const getDentistPatients = async (dentistId) => {
                     start_time: appointment.slot.start_time,
                     end_time: appointment.slot.end_time
                 },
-                serviceName: appointment.service.name
+                serviceName: appointment.service.name,
+                appointmentId: appointment.id
             })),
             ...reappointments.map(reappointment => ({
                 type: 'Reappointment',
@@ -335,7 +336,8 @@ const getDentistPatients = async (dentistId) => {
                     start_time: reappointment.slot.start_time,
                     end_time: reappointment.slot.end_time
                 },
-                serviceName: reappointment.service.name 
+                serviceName: reappointment.service.name,
+                appointmentId: reappointment.id
             }))
         ];
 
