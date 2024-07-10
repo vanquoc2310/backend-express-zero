@@ -56,7 +56,7 @@ const getDentistPatientHistory = async (req, res) => {
   const { customerId } = req.params;
 
   try {
-      const history = await dentistService.getDentistPatientHistory(dentistId, customerId);
+      const history = await dentistService.getDentistPatientHistory(customerId);
       res.json(history);
   } catch (error) {
     res.status(500).json({ message: error.message })
