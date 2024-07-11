@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getHomePage, getPageAllClinics, getPageAllDoctors, getPageAllServices, postSearchHomePage, getDetailServicePage, getDetailDoctorPage, getDetailClinicPage, getDentistsByClinic } = require('../controllers/homeController');
-const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName, addDentist, updateDentist, deleteDentist, getDentistsByClinicClinicOwner, getDetailClinicByClinicOwner } = require('../controllers/clinicOwnerController');
+const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName, addDentist, updateDentist, deleteDentist, getDentistsByClinicClinicOwner, getDetailClinicByClinicOwner, getAllSlots, createDentistScheduleByDate } = require('../controllers/clinicOwnerController');
 const adminController = require('../controllers/adminController');
 const customerController = require('../controllers/customerController');
 const authorizeAdmin = require('../middleware/adminMiddleware');
@@ -41,6 +41,9 @@ router.get('/clinic-owner/clinic/dentists', authorizeClinicOwner, getDentistsByC
 router.post('/clinic-owner/clinic/dentists', authorizeClinicOwner, addDentist);
 router.put('/clinic-owner/clinic/dentists/:id', authorizeClinicOwner, updateDentist);
 router.delete('/clinic-owner/clinic/dentists/:id', authorizeClinicOwner, deleteDentist);
+
+router.get('/all-slots', getAllSlots);
+router.post('/clinic-owner/clinic/dentist-slots', authorizeClinicOwner, createDentistScheduleByDate)
 
 //-----------------------------------------------------------
 

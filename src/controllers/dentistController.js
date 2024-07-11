@@ -32,8 +32,8 @@ const getDentistWeeklySchedule = async (req, res) => {
   try {
     const dentistId = req.user.userId;
     console.log(dentistId);
-    // Call service to fetch dentist's weekly schedule
-    const schedule = await dentistService.getDentistWeeklySchedule(dentistId);
+    const selectedDate = req.body.selectedDate; 
+    const schedule = await dentistService.getDentistWeeklySchedule(dentistId, selectedDate);
 
     res.json(schedule);
   } catch (error) {

@@ -1,7 +1,7 @@
 const clinicService = require('./../services/clinicService');
 const dentistService = require('../services/dentistService');
 const homeService = require('./../services/homeService');
-
+const db = require("./../models");
 
 
 let putUpdateClinic = async (req, res) => {
@@ -126,6 +126,70 @@ const getDetailClinicByClinicOwner = async (req, res) => {
     }
 };
 
+const getAllSlots = async (req, res) => {
+    try {
+      const slots = await db.slot.findAll();
+      res.json(slots);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+};
+
+const createDentistScheduleByDate = async (req, res) => {
+    const { dentist_id, slot_ids, date } = req.body;
+  
+    // Log the received data
+    console.log("Received data:", { dentist_id, slot_ids, date });
+  
+    // Parse slot_ids if it's a string
+    let parsedSlotIds = slot_ids;
+    if (typeof slot_ids === 'string') {
+      try {
+        parsedSlotIds = JSON.parse(slot_ids);
+      } catch (error) {
+        return res.status(400).json({ error: "Invalid slot_ids format. Must be a valid JSON array." });
+      }
+    }
+  
+    // Validate input
+    if (!Array.isArray(parsedSlotIds)) {
+      return res.status(400).json({ error: "slot_ids must be an array" });
+    }
+  
+    try {
+      const dentistSlots = await Promise.all(
+        parsedSlotIds.map(async (slot_id) => {
+          // Check if the slot already exists for the dentist on the given date
+          const existingSlot = await db.dentist_slot.findOne({
+            where: {
+              dentist_id,
+              slot_id,
+              date
+            }
+          });
+  
+          // If the slot already exists, return it instead of creating a new one
+          if (existingSlot) {
+            return existingSlot;
+          }
+  
+          // If the slot does not exist, create a new one
+          return db.dentist_slot.create({
+            dentist_id,
+            slot_id,
+            date,
+            current_patients: 0
+          });
+        })
+      );
+  
+      res.status(201).json(dentistSlots);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  
+
 module.exports = {
     putUpdateClinic,
     postCreateClinic,
@@ -135,5 +199,7 @@ module.exports = {
     updateDentist,
     deleteDentist,
     getDentistsByClinicClinicOwner,
-    getDetailClinicByClinicOwner
+    getDetailClinicByClinicOwner,
+    getAllSlots,
+    createDentistScheduleByDate
 };

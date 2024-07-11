@@ -104,7 +104,11 @@ const confirmAppointment = async (appointmentId) => {
 };
 
 const createReappointment = async (appointmentId, periodicInterval, reappointmentCount) => {
+    let transaction;
     try {
+        // Start a transaction
+        transaction = await db.sequelize.transaction();
+
         // Fetch the original appointment to get necessary details
         const appointment = await db.appointment.findByPk(appointmentId, {
             include: [
@@ -135,6 +139,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
                     as: 'clinic',
                 },
             ],
+            transaction, // Pass transaction to ensure consistency
         });
 
         if (!appointment) {
@@ -203,6 +208,9 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             // Handle email sending error here
         }
 
+        // Update the status of the original appointment to 'Completed'
+        await appointment.update({ status: 'Completed' }, { transaction });
+
         // Create reappointments and schedule dentist slots
         const createdReappointments = await Promise.all(reappointmentDates.map(async (date) => {
             // Create reappointment
@@ -216,7 +224,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
                 periodic_interval: periodicInterval,
                 status: 'Confirmed',
                 reappointment_count: reappointmentCount,
-            });
+            }, { transaction });
 
             // Schedule dentist slot (check and create if not exist)
             const formattedDate = date.format('YYYY-MM-DD');
@@ -225,12 +233,13 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
                     dentist_id: dentist.id,
                     slot_id: slot.id,
                     date: formattedDate, // Only check for date without time part
-                }
+                },
+                transaction, // Pass transaction to ensure consistency
             });
 
             if (existingSlot) {
                 // If slot exists, update current_patients by incrementing by 1
-                await existingSlot.increment('current_patients');
+                await existingSlot.increment('current_patients', { transaction });
             } else {
                 // Create new dentist_slot if not exist
                 await db.dentist_slot.create({
@@ -238,15 +247,20 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
                     slot_id: slot.id,
                     date: formattedDate, // Use the new calculated date
                     current_patients: 1, // Assuming initial patients count is 1
-                });
+                }, { transaction });
             }
 
             return reappointment;
         }));
 
+        // Commit the transaction
+        await transaction.commit();
+
         // Return created reappointments
         return createdReappointments;
     } catch (error) {
+        // Rollback the transaction if there's an error
+        if (transaction) await transaction.rollback();
         console.error('Error in createReappointment service:', error);
         throw new Error('Failed to create reappointment');
     }

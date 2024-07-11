@@ -155,6 +155,7 @@ const getDentistsByClinicOwner = async (clinicId) => {
                     {
                         model: db.user,
                         as: 'dentist',
+                        attributes: ['id', 'name', 'email', 'phonenumber', 'image']
                     }
                 ]
             }
@@ -219,12 +220,12 @@ const getAvailableSlots = async (dentistId, date) => {
     }
 };
 
-const getDentistWeeklySchedule = async (dentistId) => {
+const getDentistWeeklySchedule = async (dentistId, selectedDate) => {
     try {
-        // Get today's date
-        const currentDate = new Date();
+        // Convert selectedDate to a Date object (assuming selectedDate is in ISO format YYYY-MM-DD)
+        const currentDate = new Date(selectedDate);
 
-        // Calculate dates for the next 7 days (Monday to Sunday)
+        // Calculate dates for the week of the selected date (Monday to Sunday)
         const startDate = new Date(currentDate);
         startDate.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Monday
         const endDate = new Date(startDate);
