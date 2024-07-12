@@ -158,7 +158,7 @@ const getDetailClinicPage = async (req, res) => {
         }
 
         // Fetch feedbacks for the clinic
-        const feedbacks = await homeService.getFeedbackByClinicId(clinic.id);
+        const feedbacks = await homeService.getFeedbackByClinicId(id);
 
         // Combine clinic data with feedbacks
         const clinicWithFeedbacks = {

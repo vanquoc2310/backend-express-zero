@@ -155,7 +155,7 @@ const getDentistsByClinicOwner = async (clinicId) => {
                     {
                         model: db.user,
                         as: 'dentist',
-                        attributes: ['id', 'name', 'email', 'phonenumber', 'image']
+                        attributes: ['id', 'name', 'email', 'phonenumber', 'image', 'status']
                     }
                 ]
             }
@@ -373,6 +373,11 @@ const getDentistPatientHistory = async (customerId) => {
                 {
                     model: db.reappointment,
                     as: 'reappointment',
+                    required: false
+                },
+                {
+                    model: db.user,
+                    as: 'customer',
                     required: false
                 },
             ],

@@ -85,7 +85,9 @@ router.get('/customer/appointments', authorizeLogin, customerController.getPatie
 router.get('/customer/histories', authorizeLogin, customerController.getHistoryResult);
 
 // route để tạo feedback
-router.post('/customer/feedback/:id', authorizeLogin, customerController.createFeedback);
+router.post('/customer/feedback/:id', authorizeLogin, customerController.createNewFeedback);
+router.put('/customer/feedback/:id', authorizeLogin, customerController.updateExistingFeedback);
+
 
 
 module.exports = router;

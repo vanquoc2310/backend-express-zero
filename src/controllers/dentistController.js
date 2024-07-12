@@ -32,7 +32,7 @@ const getDentistWeeklySchedule = async (req, res) => {
   try {
     const dentistId = req.user.userId;
     console.log(dentistId);
-    const selectedDate = req.body.selectedDate; 
+    const selectedDate = req.query.date; // sử dụng query parameters
     const schedule = await dentistService.getDentistWeeklySchedule(dentistId, selectedDate);
 
     res.json(schedule);

@@ -38,6 +38,11 @@ module.exports = function(sequelize, DataTypes) {
         model: 'reappointment',
         key: 'id'
       }
+    },
+    hasFeedback: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false, // Giá trị mặc định là false (chưa có đánh giá)
+      allowNull: false,
     }
   }, {
     sequelize,

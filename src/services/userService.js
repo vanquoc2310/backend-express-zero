@@ -235,12 +235,12 @@ const getHistoryResult = async (customerId) => {
   try {
     const history = await db.examination_result.findAll({
       where: { customer_id: customerId },
-      attributes: ['id', 'result', 'result_date'],
+      attributes: ['id', 'result', 'result_date', 'hasFeedback'],
       include: [
         {
           model: db.appointment,
           as: 'appointment',
-          attributes: ['clinic_id', 'slot_id', 'dentist_id'],
+          attributes: ['id', 'clinic_id', 'slot_id', 'dentist_id'],
           required: false,
           include: [
             {
@@ -283,6 +283,12 @@ const getHistoryResult = async (customerId) => {
             },
           ],
         },
+        {
+          model: db.feedback,
+          as: 'feedback',
+          attributes: ['id', 'rating', 'feedback_text'], // Lấy các thuộc tính của feedback
+          required: false,
+        },
       ],
       order: [['result_date', 'DESC']],
     });
@@ -299,6 +305,7 @@ const getHistoryResult = async (customerId) => {
     throw new Error('Failed to fetch patient history');
   }
 };
+
 
 
 const createFeedback = async (feedbackData) => {

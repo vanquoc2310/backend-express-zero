@@ -157,9 +157,10 @@ const getClinicByIdDetail = async (clinicId) => {
                         {
                             model: db.user,
                             as: 'dentist',
-                            attributes: ['name']
-                        }
-                    ]
+                            attributes: ['name'],
+                            where: {status: true}
+                        },
+                    ], 
                 },
                 {
                     model: db.user,
@@ -198,7 +199,7 @@ const getFeedbackByClinicId = async (clinicId) => {
                             as: 'appointment',
                             required: false,
                             where: {
-                                '$examination_result.appointment.clinic_id$': clinicId,
+                                clinic_id: clinicId
                             },
                             attributes: ['clinic_id']
                         },
@@ -207,7 +208,7 @@ const getFeedbackByClinicId = async (clinicId) => {
                             as: 'reappointment',
                             required: false,
                             where: {
-                                '$examination_result.reappointment.clinic_id$': clinicId,
+                                clinic_id: clinicId
                             },
                             attributes: ['clinic_id']
                         }
@@ -219,7 +220,7 @@ const getFeedbackByClinicId = async (clinicId) => {
                     attributes: ['name'],
                     required: true // Ensures that the customer information is included
                 }
-            ],
+            ]
         });
 
         if (!feedbacks || feedbacks.length === 0) {
@@ -227,22 +228,43 @@ const getFeedbackByClinicId = async (clinicId) => {
         }
 
         // Filter out feedbacks with null appointment and reappointment
-        const filteredFeedbacks = feedbacks.filter(feedback => {
-            return feedback.examination_result.appointment || feedback.examination_result.reappointment;
-        });
+        const filteredFeedbacks = feedbacks.filter(feedback =>
+            feedback.examination_result.appointment || feedback.examination_result.reappointment
+        );
 
         if (filteredFeedbacks.length === 0) {
             return { message: 'No feedbacks found for this clinic' };
         }
 
-         // Map through feedbacks and format feedback_date
-         const formattedFeedbacks = feedbacks.map(feedback => ({
-            ...feedback.toJSON(),  // Convert Sequelize instance to plain JSON object
-            feedback_date: feedback.feedback_date.toISOString().slice(0, 10)  // Get first 10 characters (YYYY-MM-DD)
+        // Map through filtered feedbacks and format feedback_date
+        const formattedFeedbacks = filteredFeedbacks.map(feedback => ({
+            id: feedback.id,
+            customer_id: feedback.customer_id,
+            rating: feedback.rating,
+            feedback_text: feedback.feedback_text,
+            feedback_date: feedback.feedback_date.toISOString().slice(0, 10), // Format feedback_date as YYYY-MM-DD
+            examination_result_id: feedback.examination_result.id,
+            examination_result: {
+                id: feedback.examination_result.id,
+                customer_id: feedback.examination_result.customer_id,
+                result: feedback.examination_result.result,
+                result_date: feedback.examination_result.result_date.toISOString(), // Keep result_date in ISO format
+                appointment: feedback.examination_result.appointment ? {
+                    clinic_id: feedback.examination_result.appointment.clinic_id
+                } : null,
+                reappointment: feedback.examination_result.reappointment ? {
+                    clinic_id: feedback.examination_result.reappointment.clinic_id
+                } : null,
+                hasFeedback: feedback.examination_result.hasFeedback
+            },
+            customer: {
+                name: feedback.customer.name
+            }
         }));
 
         return formattedFeedbacks;
     } catch (error) {
+        console.error('Error retrieving feedbacks:', error);
         return { error: 'Error retrieving feedbacks' };
     }
 };
