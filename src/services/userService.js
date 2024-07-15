@@ -186,7 +186,25 @@ const getDoctorById = async (id) => {
         {
           model: db.dentist_info,
           as: 'dentist_info',
-          include: [{ model: db.clinic, as: 'clinic', attributes: ['name'] }]
+          include: [
+            {
+              model: db.clinic,
+              as: 'clinic',
+              attributes: ['id', 'name'],
+              include: [
+                {
+                  model: db.clinic_service,
+                  as: 'clinic_services',
+                  include: [
+                    {
+                      model: db.service,
+                      as: 'service'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     });
