@@ -202,6 +202,251 @@ async function getServicesByClinic(clinicId) {
     }
   };
 
+  const getAppointmentsAndReappointmentsByClinic = async (clinicId) => {
+    try {
+        // Lấy appointments và sắp xếp
+        const appointments = await db.appointment.findAll({
+            where: { clinic_id: clinicId },
+            order: [
+                ['appointment_date', 'DESC'],
+                [
+                    db.sequelize.literal(`CASE 
+                        WHEN status = 'Pending' THEN 1
+                        WHEN status = 'Confirmed' THEN 2
+                        WHEN status = 'Completed' THEN 3
+                        WHEN status = 'Cancelled' THEN 4
+                        ELSE 5 END`),
+                    'ASC'
+                ]
+            ]
+        });
+
+        // Lấy reappointments và sắp xếp
+        const reappointments = await db.reappointment.findAll({
+            where: { clinic_id: clinicId },
+            order: [
+                ['reappointment_date', 'DESC'],
+                [
+                    db.sequelize.literal(`CASE 
+                        WHEN status = 'Pending' THEN 1
+                        WHEN status = 'Confirmed' THEN 2
+                        WHEN status = 'Completed' THEN 3
+                        WHEN status = 'Cancelled' THEN 4
+                        ELSE 5 END`),
+                    'ASC'
+                ]
+            ]
+        });
+
+        // Format appointments
+        const formattedAppointments = appointments.map(appointment => ({
+            id: appointment.id,
+            status: appointment.status,
+            appointment_date: appointment.appointment_date,
+            type: 'appointment'
+        }));
+
+        // Format reappointments
+        const formattedReappointments = reappointments.map(reappointment => ({
+            id: reappointment.id,
+            status: reappointment.status,
+            reappointment_date: reappointment.reappointment_date,
+            type: 'reappointment'
+        }));
+
+        // Lấy các thông tin include sau khi đã sắp xếp
+        const appointmentIds = formattedAppointments.map(appointment => appointment.id);
+        const reappointmentIds = formattedReappointments.map(reappointment => reappointment.id);
+
+        const appointmentDetails = await db.appointment.findAll({
+            where: { id: appointmentIds },
+            include: [
+                {
+                    model: db.slot,
+                    as: 'slot',
+                    attributes: ['id', 'start_time', 'end_time'],
+                },
+                {
+                    model: db.user,
+                    as: 'customer',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.user,
+                    as: 'dentist',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.service,
+                    as: 'service',
+                    attributes: ['id', 'name']
+                },
+            ]
+        });
+
+        const reappointmentDetails = await db.reappointment.findAll({
+            where: { id: reappointmentIds },
+            include: [
+                {
+                    model: db.slot,
+                    as: 'slot',
+                    attributes: ['id', 'start_time', 'end_time'],
+                },
+                {
+                    model: db.user,
+                    as: 'customer',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.user,
+                    as: 'dentist',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.service,
+                    as: 'service',
+                    attributes: ['id', 'name']
+                },
+            ]
+        });
+
+        // Gộp thông tin include vào dữ liệu đã format
+        formattedAppointments.forEach(appointment => {
+            const details = appointmentDetails.find(a => a.id === appointment.id);
+            if (details) {
+                appointment.slot = details.slot.toJSON();
+                appointment.customer = details.customer.toJSON();
+                appointment.dentist = details.dentist.toJSON();
+                appointment.service = details.service.toJSON();
+            }
+        });
+
+        formattedReappointments.forEach(reappointment => {
+            const details = reappointmentDetails.find(r => r.id === reappointment.id);
+            if (details) {
+                reappointment.slot = details.slot.toJSON();
+                reappointment.customer = details.customer.toJSON();
+                reappointment.dentist = details.dentist.toJSON();
+                reappointment.service = details.service.toJSON();
+            }
+        });
+
+        return {
+            appointments: formattedAppointments,
+            reappointments: formattedReappointments
+        };
+    } catch (error) {
+        console.error("Error fetching appointments and reappointments: ", error);
+        throw error;
+    }
+};
+
+const getFilteredAppointmentsAndReappointments = async (filters) => {
+  try {
+    const { status, dentistId, clinicId, type, date } = filters;
+
+    const appointmentWhere = {
+      clinic_id: clinicId  // Áp dụng clinicId vào điều kiện lọc appointment
+    };
+    const reappointmentWhere = {
+      clinic_id: clinicId  // Áp dụng clinicId vào điều kiện lọc reappointment
+    };
+
+    if (status) {
+      appointmentWhere.status = status;
+      reappointmentWhere.status = status;
+    }
+    if (dentistId) {
+      appointmentWhere.dentist_id = dentistId;
+      reappointmentWhere.dentist_id = dentistId;
+    }
+    if (date) {
+      appointmentWhere.appointment_date = date;
+      reappointmentWhere.reappointment_date = date;
+    }
+
+    let appointments = [];
+    let reappointments = [];
+
+    if (!type || type === 'Appointment') {
+      appointments = await db.appointment.findAll({
+        where: appointmentWhere,
+        include: [
+          {
+            model: db.slot,
+            as: 'slot',
+            attributes: ['id', 'start_time', 'end_time'],
+          },
+          {
+            model: db.user,
+            as: 'customer',
+            attributes: ['id', 'name']
+          },
+          {
+            model: db.user,
+            as: 'dentist',
+            attributes: ['id', 'name']
+          },
+          {
+            model: db.service,
+            as: 'service',
+            attributes: ['id', 'name']
+          },
+        ],
+        order: [['appointment_date', 'DESC']]
+      });
+    }
+
+    if (!type || type === 'Reappointment') {
+      reappointments = await db.reappointment.findAll({
+        where: reappointmentWhere,
+        include: [
+          {
+            model: db.slot,
+            as: 'slot',
+            attributes: ['id', 'start_time', 'end_time'],
+          },
+          {
+            model: db.user,
+            as: 'customer',
+            attributes: ['id', 'name']
+          },
+          {
+            model: db.user,
+            as: 'dentist',
+            attributes: ['id', 'name']
+          },
+          {
+            model: db.service,
+            as: 'service',
+            attributes: ['id', 'name']
+          },
+        ],
+        order: [['reappointment_date', 'DESC']]
+      });
+    }
+
+    // Thêm thuộc tính type cho mỗi đối tượng
+    const formattedAppointments = appointments.map(appointment => ({
+      ...appointment.dataValues,
+      type: 'Appointment'
+    }));
+
+    const formattedReappointments = reappointments.map(reappointment => ({
+      ...reappointment.dataValues,
+      type: 'Reappointment'
+    }));
+
+    return {
+      appointments: formattedAppointments,
+      reappointments: formattedReappointments
+    };
+  } catch (error) {
+    console.error("Error fetching appointments and reappointments: ", error);
+    throw error;
+  }
+};
+  
 module.exports = {
     //getDetailClinicPage,
     createNewClinic,
@@ -211,5 +456,7 @@ module.exports = {
     getAllClinics,
     searchClinicsByName,
     getServicesByClinic,
-    getClinicByIdClinicOwner
+    getClinicByIdClinicOwner,
+    getAppointmentsAndReappointmentsByClinic,
+    getFilteredAppointmentsAndReappointments,
 };

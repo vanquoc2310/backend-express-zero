@@ -1,6 +1,7 @@
 const homeService = require('./../services/homeService');
 const userService = require('./../services/userService');
 const dentistService = require('./../services/dentistService');
+const db = require("./../models");
 
 
 const getHomePage = async (req, res) => {
@@ -194,6 +195,42 @@ const getDentistsByClinic = async (req, res) => {
     }
 };
 
+
+const registerClinicRequest = async (req, res) => {
+    const { name, address, phonenumber, email, image } = req.body;
+
+    try {
+        // Kiểm tra nếu email đã tồn tại
+        const existingRequest = await db.clinicRequest.findOne({
+            where: { email: email }
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({ error: 'Email đã tồn tại trong hệ thống yêu cầu' });
+        }
+
+        // Lấy ngày hiện tại (chỉ phần ngày)
+        const currentDate = new Date().toISOString().split('T')[0];
+
+        // Tạo yêu cầu đăng ký phòng khám
+        const clinicRequest = await db.clinicRequest.create({
+            name,
+            address,
+            phonenumber,
+            email,
+            image,
+            status: 'Pending',
+            created_at: currentDate
+        });
+
+        res.status(201).json({ message: 'Yêu cầu đăng ký phòng khám đã được gửi', clinicRequest });
+    } catch (error) {
+        console.error('Error creating clinic request:', error);
+        res.status(500).json({ error: 'Lỗi khi tạo yêu cầu đăng ký phòng khám' });
+    }
+};
+
+
 module.exports = {
     getHomePage,
     getPageAllClinics,
@@ -208,6 +245,7 @@ module.exports = {
     postBookingDoctorPageNormal,
     getDetailClinicPage,
     getDentistsByClinic,
+    registerClinicRequest
 };
 
 

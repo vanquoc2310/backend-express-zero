@@ -189,6 +189,38 @@ const createDentistScheduleByDate = async (req, res) => {
     }
   };
   
+   const getAppointmentsAndReappointmentsByClinic =  async (req, res) => {
+    try {
+        let { clinicId } = req.params;
+        if (clinicId === undefined) clinicId = req.user.clinicId;
+  
+      if (!clinicId) {
+        return res.status(400).json({ error: "Clinic ID is required" });
+      }
+
+      console.log(clinicId);
+  
+      const data = await clinicService.getAppointmentsAndReappointmentsByClinic(clinicId);
+      res.status(200).json(data);
+    } catch (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
+
+  const getFilteredAppointmentsAndReappointments = async (req, res) => {
+    try {
+      const { status, dentistId, type, date } = req.query;
+      const clinicId = req.user.clinicId;
+      console.log(clinicId);
+  
+      const filters = { status, dentistId, clinicId, type, date };
+  
+      const data = await clinicService.getFilteredAppointmentsAndReappointments(filters);
+      res.status(200).json(data);
+    } catch (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
 
 module.exports = {
     putUpdateClinic,
@@ -201,5 +233,7 @@ module.exports = {
     getDentistsByClinicClinicOwner,
     getDetailClinicByClinicOwner,
     getAllSlots,
-    createDentistScheduleByDate
+    createDentistScheduleByDate,
+    getAppointmentsAndReappointmentsByClinic,
+    getFilteredAppointmentsAndReappointments,
 };

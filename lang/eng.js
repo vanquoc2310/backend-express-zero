@@ -5,46 +5,124 @@ const transValidation = {
     password_confirmation_incorrect: "The confirm password is not correct",
 };
 
-const transMailBookingNew = {
-    subject: "Email notification of booking progress at Doctors Care",
+
+const transMailBookingSuccess = {
+    subject: "Thông báo email về tiến trình đặt lịch tại hệ thống Doctors Care",
     template: (data) => {
-        return `<h3>Thank you for booking an appointment at Doctors Care's system </h3>
-        <h4>Information for booked appointment:</h4>
-        <div>Doctor's name: ${data.doctor} </div>
-        <div>Time: ${data.time}</div>
-        <div>Date: ${data.date}</div>
-        <div>Status: <b> Pending - A new appointment is waiting for confirmation</b></div>
-        <p>Please click the link below to confirm your appointment:</p>
-        <a href="${data.confirmationLink}">Confirm Appointment</a>
-        <h4>Doctors Care system will automatically send email notification when confirmed appointment is complete. Thank you !</h4>`;
+        return `
+            <html>
+            <head>
+                <style>
+                    /* CSS styles */
+                    body {
+                        font-family: Arial, sans-serif;
+                    }
+                    .email-container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                    }
+                    .email-header {
+                        background-color: #f0f0f0;
+                        padding: 10px;
+                        text-align: center;
+                    }
+                    .email-content {
+                        margin-top: 20px;
+                    }
+                    .email-content p {
+                        margin-bottom: 10px;
+                    }
+                    .email-signature {
+                        margin-top: 20px;
+                        font-style: italic;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="email-header">
+                        <h3>Cảm ơn bạn đã đặt lịch hẹn tại hệ thống SmileDentalCare</h3>
+                    </div>
+                    <div class="email-content">
+                        <p>Chào bạn <strong>${data.customerName}</strong>,</p>
+                        <p>Bạn có cuộc hẹn với:</p>
+                        <p>- Bác sĩ <strong>${data.dentistName}</strong>,</p>
+                        <p>- Vào lúc: <strong>${data.time}</strong>, ngày: <strong>${data.date}</strong></p>
+                        <p>đã được xác nhận thành công.Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+                    </div>
+                    <div class="email-signature">
+                        <p>Trân trọng,</p>
+                        <p>Đội ngũ phòng khám <strong>${data.clinicName}</strong></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
     },
 };
 
 const transMailBookingFailed = {
-    subject: "Email notification of booking progress at Doctors Care",
+    subject: "Thông báo email về tiến trình đặt lịch tại hệ thống Doctors Care",
     template: (data) => {
-        return `<h3>Thank you for booking an appointment at Doctors Care's system  </h3>
-        <h4>Information for booked appointment:</h4>
-        <div>Doctor's name: ${data.doctor} </div>
-        <div>Time: ${data.time}</div>
-        <div>Date: ${data.date}</div>
-        <div>Status: <b>Cancel - ${data.reason}</b></div>
-        <h4>If you notice errors from this email, please contact the support operator: <b> 911 911 </b>. Thank you !</h4>`;
+        return `
+            <html>
+            <head>
+                <style>
+                    /* CSS styles */
+                    body {
+                        font-family: Arial, sans-serif;
+                    }
+                    .email-container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                    }
+                    .email-header {
+                        background-color: #f0f0f0;
+                        padding: 10px;
+                        text-align: center;
+                    }
+                    .email-content {
+                        margin-top: 20px;
+                    }
+                    .email-content p {
+                        margin-bottom: 10px;
+                    }
+                    .email-signature {
+                        margin-top: 20px;
+                        font-style: italic;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="email-header">
+                        <h3>Cảm ơn bạn đã đặt lịch hẹn tại hệ thống SmileDentalCare</h3>
+                    </div>
+                    <div class="email-content">
+                        <p>Chào bạn <strong>${data.customerName}</strong>,</p>
+                        <p>Cuộc hẹn với:</p>
+                        <p>- Bác sĩ <strong>${data.dentistName}</strong>,</p>
+                        <p>- Vào lúc: <strong>${data.time}</strong>, ngày: <strong>${data.date}</strong></p>
+                        <p>của bạn đã bị hủy. Lý do hủy: <strong>${data.reason}</strong></p>
+                        <p>Chúng tôi rất tiếc về sự bất tiện này và mong rằng bạn sẽ sớm đặt lại lịch hẹn khác.</p>
+                    </div>
+                    <div class="email-signature">
+                        <p>Trân trọng,</p>
+                        <p>Đội ngũ phòng khám <strong>${data.clinicName}</strong></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
     },
 };
 
-const transMailBookingSuccess = {
-    subject: "Email notification of booking progress at Doctors Care",
-    template: (data) => {
-        return `<h3>Thank you for booking an appointment at Doctors Care's system </h3>
-        <h4>Information for booked appointment:</h4>
-        <div>Doctor's name: ${data.doctor} </div>
-        <div>Time: ${data.time}</div>
-        <div>Date: ${data.date}</div>
-        <div>Status: <b>Succeed</b></div>
-        <h4>Thank you very much !</h4>`;
-    },
-};
 
 const tranForgotPassword = {
     subject: "Password Reset Request",
@@ -61,7 +139,6 @@ const tranForgotPassword = {
 
 module.exports = {
     transValidation,
-    transMailBookingNew,
     transMailBookingFailed,
     transMailBookingSuccess,
     tranForgotPassword,

@@ -1,0 +1,62 @@
+const Sequelize = require('sequelize');
+module.exports = function(sequelize, DataTypes) {
+  return sequelize.define('clinicRequest', {
+    id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true
+    },
+    address: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
+    name: {
+      type: DataTypes.STRING(50),
+      allowNull: false
+    },
+    phonenumber: {
+      type: DataTypes.STRING(20),
+      allowNull: false
+    },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true
+    },
+    status: {
+      type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'),
+      allowNull: false,
+      defaultValue: 'Pending'
+    },
+    image: {
+      type: DataTypes.STRING(4000),
+      allowNull: true
+    },
+    created_at: {
+      type: DataTypes.DATEONLY,
+      defaultValue: DataTypes.NOW
+    }
+  }, {
+    sequelize,
+    tableName: 'clinicRequest',
+    schema: 'dbo',
+    timestamps: false,
+    indexes: [
+      {
+        name: "PK__clinicRequest__3213E83FFD48D255",
+        unique: true,
+        fields: [
+          { name: "id" },
+        ]
+      },
+      {
+        name: "UQ__clinicRequest__AB6E6164F7F87138",
+        unique: true,
+        fields: [
+          { name: "email" },
+        ]
+      },
+    ]
+  });
+};

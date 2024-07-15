@@ -13,6 +13,7 @@ var _role = require("./role");
 var _service = require("./service");
 var _slot = require("./slot");
 var _user = require("./user");
+var _clinicRequest = require("./clinicRequest")
 
 function initModels(sequelize) {
   var appointment = _appointment(sequelize, DataTypes);
@@ -29,6 +30,7 @@ function initModels(sequelize) {
   var service = _service(sequelize, DataTypes);
   var slot = _slot(sequelize, DataTypes);
   var user = _user(sequelize, DataTypes);
+  var clinicRequest = _clinicRequest(sequelize, DataTypes);
 
   examination_result.belongsTo(appointment, { as: "appointment", foreignKey: "appointment_id"});
   appointment.hasMany(examination_result, { as: "examination_results", foreignKey: "appointment_id"});
@@ -96,6 +98,7 @@ function initModels(sequelize) {
     service,
     slot,
     user,
+    clinicRequest
   };
 }
 module.exports = initModels;

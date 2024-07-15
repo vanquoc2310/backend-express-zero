@@ -37,8 +37,21 @@ const createReappointment = async (req, res) => {
     }
 };
 
+const cancelAppointment = async (req, res) => {
+    const appointmentId = req.params.appointmentId;
+
+    try {
+        const appointment = await appointmentService.cancelAppointment(appointmentId);
+        res.json({ message: 'Appointment cancelled successfully', appointment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error cancelling appointment' });
+    }
+};
+
 module.exports = {
     createAppointment,
     confirmAppointment,
-    createReappointment
+    createReappointment,
+    cancelAppointment
 };

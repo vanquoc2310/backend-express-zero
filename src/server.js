@@ -12,8 +12,6 @@ const app = express(); // app express
 const port = process.env.PORT || 8081; //port
 const hostname = process.env.HOST_NAME;
 
-
-
 // config req.body
 app.use(express.json()); // for json
 app.use(express.urlencoded({extended: true})); // for form data
@@ -34,6 +32,8 @@ app.use('/', webRoutes);
 // app.get('*', (req, res) => {
 //   res.sendFile(path.join(__dirname, '../smilecaredental/build', 'index.html'));
 // }); 
+
+require('./cron/cron');
 
 app.listen(port, hostname, () => {
     console.log(`Example app listening on port ${port}`);

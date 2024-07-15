@@ -1,6 +1,6 @@
 const db = require('../models');
 const moment = require('moment');
-const { transMailBookingNew } = require('../../lang/eng');
+const { transMailBookingSuccess, transMailBookingFailed } = require('../../lang/eng');
 const { sendEmailNormal, sendEmailWithAttachment } = require('../config/mailer');
 const momenttime = require('moment-timezone');
 const appointment = require('../models/appointment');
@@ -45,20 +45,6 @@ const createAppointment = async (customerId, clinicId, dentistId, serviceId, slo
             appointment_date: db.sequelize.literal(`CONVERT(datetime, '${appointmentDate}', 120)`)
         });
 
-        // Send confirmation email to the customer
-        const slot = await db.slot.findByPk(slotId);
-        const dentist = await db.user.findByPk(dentistId);
-        const customer = await db.user.findByPk(customerId);
-
-        const time = `${slot.start_time} - ${slot.end_time}`; // Format time
-        const date = appointmentDate; // Get date from dentist_slot
-
-        // Generate confirmation link with appointment ID
-        const port = process.env.PORT || 8081; //port
-        const confirmationLink = `http://localhost:${port}/appointments/confirm/${newAppointment.id}`;
-        const emailContent = transMailBookingNew.template({ doctor: dentist.name, time, date, confirmationLink });
-        await sendEmailNormal(customer.email, transMailBookingNew.subject, emailContent);
-
 
         return newAppointment;
     } catch (error) {
@@ -96,12 +82,35 @@ const confirmAppointment = async (appointmentId) => {
             await dentistSlot.save();
         }
 
+        // Send confirmation email to the customer
+        const slot = await db.slot.findByPk(appointment.slot_id);
+        const dentist = await db.user.findByPk(appointment.dentist_id);
+        const customer = await db.user.findByPk(appointment.customer_id);
+        const clinic = await db.clinic.findByPk(appointment.clinic_id);
+
+
+        const time = `${slot.start_time} - ${slot.end_time}`; // Format time
+        const date = moment(appointment.appointment_date).format('DD-MM-YYYY'); // Get date from appointment
+
+        // Notify customer about appointment confirmation
+        const emailSubject = 'Thông báo xác nhận lịch hẹn';
+        const emailContent = transMailBookingSuccess.template({
+            dentistName: dentist.name,
+            time,
+            date,
+            customerName: customer.name,
+            clinicName: clinic.name,
+        });
+
+        await sendEmailNormal(customer.email, emailSubject, emailContent);
+
         return appointment;
     } catch (error) {
-        console.log(error);
+        console.error(error);
         throw new Error('Error confirming appointment');
     }
 };
+
 
 const createReappointment = async (appointmentId, periodicInterval, reappointmentCount) => {
     let transaction;
@@ -266,12 +275,53 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
     }
 };
 
+const cancelAppointment = async (appointmentId) => {
+    try {
+        // Find the appointment
+        const appointment = await db.appointment.findByPk(appointmentId);
 
+        if (!appointment) {
+            throw new Error('Appointment not found');
+        }
+
+        // Update the appointment status to 'Cancelled'
+        appointment.status = 'Cancelled';
+        await appointment.save();
+
+        // Send cancellation email to the customer
+        const slot = await db.slot.findByPk(appointment.slot_id);
+        const dentist = await db.user.findByPk(appointment.dentist_id);
+        const customer = await db.user.findByPk(appointment.customer_id);
+        const clinic = await db.clinic.findByPk(appointment.clinic_id);
+
+        const time = `${slot.start_time} - ${slot.end_time}`; // Format time
+        const date = moment(appointment.appointment_date).format('DD-MM-YYYY'); // Get date from appointment
+
+        // Notify customer about appointment cancellation
+        const emailSubject = 'Thông báo hủy lịch hẹn';
+        const emailContent = transMailBookingFailed.template({
+            dentistName: dentist.name,
+            time,
+            date,
+            customerName: customer.name,
+            clinicName: clinic.name,
+            reason: 'Xin lỗi vì sự bất tiện này và mong rằng bạn sẽ sớm đặt lại lịch hẹn khác.' 
+        });
+
+        await sendEmailNormal(customer.email, emailSubject, emailContent);
+
+        return appointment;
+    } catch (error) {
+        console.error(error);
+        throw new Error('Error cancelling appointment');
+    }
+};
 
 
 module.exports = {
     createAppointment,
     confirmAppointment,
-    createReappointment
+    createReappointment,
+    cancelAppointment
 };
 
