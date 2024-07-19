@@ -2,8 +2,7 @@ const dentistService = require('../services/dentistService')
 
 const getSlotsForDate = async (req, res) => {
   try {
-    const dentistId = req.user.userId; // Lấy dentistId từ thông tin user đã được xác thực
-    const { date } = req.query; // Ngày được chọn từ query parameter
+    const { dentistId, date } = req.query; 
 
     if (!date) {
       return res.status(400).json({ message: 'Date is required' });

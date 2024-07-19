@@ -180,14 +180,7 @@ const getSlotsForDate = async (dentistId, date) => {
             ]
         });
 
-        return slots.map(ds => {
-            return {
-                slotId: ds.slot.id,
-                startTime: ds.slot.start_time,
-                endTime: ds.slot.end_time,
-                currentPatients: ds.current_patients,
-            };
-        });
+        return slots;
     } catch (error) {
         throw new Error('Error fetching slots');
     }

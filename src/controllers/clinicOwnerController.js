@@ -222,6 +222,17 @@ const createDentistScheduleByDate = async (req, res) => {
     }
   };
 
+  const updateDentistSlotsByDate = async (req, res) => {
+    const { dentist_id, slot_ids, date } = req.body;
+
+    try {
+        const updatedSlots = await clinicService.updateDentistSlotsByDate(dentist_id, slot_ids, date);
+        res.status(201).json(updatedSlots);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 module.exports = {
     putUpdateClinic,
     postCreateClinic,
@@ -236,4 +247,5 @@ module.exports = {
     createDentistScheduleByDate,
     getAppointmentsAndReappointmentsByClinic,
     getFilteredAppointmentsAndReappointments,
+    updateDentistSlotsByDate
 };

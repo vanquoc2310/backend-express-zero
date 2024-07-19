@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getHomePage, getPageAllClinics, getPageAllDoctors, getPageAllServices, postSearchHomePage, getDetailServicePage, getDetailDoctorPage, getDetailClinicPage, getDentistsByClinic, registerClinicRequest } = require('../controllers/homeController');
-const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName, addDentist, updateDentist, deleteDentist, getDentistsByClinicClinicOwner, getDetailClinicByClinicOwner, getAllSlots, createDentistScheduleByDate, getAppointmentsAndReappointmentsByClinic, getFilteredAppointmentsAndReappointments } = require('../controllers/clinicOwnerController');
+const { putUpdateClinic, postCreateClinic, deleteClinicById, searchDentistsByName, addDentist, updateDentist, deleteDentist, getDentistsByClinicClinicOwner, getDetailClinicByClinicOwner, getAllSlots, createDentistScheduleByDate, getAppointmentsAndReappointmentsByClinic, getFilteredAppointmentsAndReappointments, updateDentistSlotsByDate } = require('../controllers/clinicOwnerController');
 const adminController = require('../controllers/adminController');
 const customerController = require('../controllers/customerController');
 const authorizeAdmin = require('../middleware/adminMiddleware');
@@ -51,6 +51,8 @@ router.get('/clinic-owner/filtered-appointments', authorizeClinicOwner, getFilte
 
 router.get('/all-slots', getAllSlots);
 router.post('/clinic-owner/clinic/dentist-slots', authorizeClinicOwner, createDentistScheduleByDate)
+router.put('/clinic-owner/clinic/dentist-slots', authorizeClinicOwner, updateDentistSlotsByDate)
+
 
 //-----------------------------------------------------------
 
@@ -72,7 +74,7 @@ router.put('/admin/clinic-requests/rejected/:id', authorizeAdmin, adminControlle
 
 router.get('/admin/users/customers-clinicowners', authorizeAdmin, adminController.getCustomersAndClinicOwners);
 
-router.get('/dentist/slots', authorizeDentist, dentistController.getSlotsForDate);
+router.get('/dentist/slots',  dentistController.getSlotsForDate);
 
 //route get lịch trong 7 ngày (tuần hiện tại)
 router.get('/dentist/schedule', authorizeDentist, dentistController.getDentistWeeklySchedule);

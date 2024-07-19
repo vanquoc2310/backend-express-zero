@@ -11,7 +11,6 @@ const moment = require('moment-timezone');
 
 
 
-
 let findUserByEmail = async (userEmail) => {
   try {
     // Tìm người dùng theo email
@@ -226,6 +225,7 @@ async function getTopDentists() {
         u.id AS dentist_id,
         u.name,
         u.email,
+        u.image,
         COUNT(a.id) AS completed_appointments,
         CAST(di.degree AS NVARCHAR(MAX)) AS degree,
         CAST(di.description AS NVARCHAR(MAX)) AS description,
@@ -235,7 +235,7 @@ async function getTopDentists() {
       JOIN dentist_info di ON u.id = di.dentist_id
       JOIN clinic c ON di.clinic_id = c.id
       WHERE a.status = 'completed' AND u.role_id = 3
-      GROUP BY u.id, u.name, u.email, CAST(di.degree AS NVARCHAR(MAX)), CAST(di.description AS NVARCHAR(MAX)), c.id, c.name
+      GROUP BY u.id, u.name, u.email, u.image, CAST(di.degree AS NVARCHAR(MAX)), CAST(di.description AS NVARCHAR(MAX)), c.id, c.name
       ORDER BY completed_appointments DESC;
     `;
 
