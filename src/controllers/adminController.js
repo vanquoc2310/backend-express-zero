@@ -169,13 +169,14 @@ const approveClinicRequest = async (req, res) => {
             return;
         }
 
+
         // Tạo tài khoản chủ phòng khám
         const password = generateRandomPassword();
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const clinicOwner = await db.user.create({
             email: clinicRequest.email,
-            phonenumber: clinicRequest.phone,
+            phonenumber: clinicRequest.phonenumber,
             password: hashedPassword,
             role_id: 4, 
             status: true
@@ -185,9 +186,10 @@ const approveClinicRequest = async (req, res) => {
         const clinic = await db.clinic.create({
             name: clinicRequest.name,
             address: clinicRequest.address,
-            phonenumber: clinicRequest.phone,
+            phonenumber: clinicRequest.phonenumber,
             clinic_owner_id: clinicOwner.id,
-            status: true
+            status: true,
+            image: clinicRequest.image
         });
 
         
