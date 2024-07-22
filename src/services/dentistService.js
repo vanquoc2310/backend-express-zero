@@ -256,12 +256,17 @@ const getDentistWeeklySchedule = async (dentistId, selectedDate) => {
     }
 };
 
-
 const getDentistPatients = async (dentistId) => {
     try {
-        // Fetch confirmed appointments with associated slots and users
+        const today = moment().startOf('day').toDate(); // Lấy ngày hiện tại, bắt đầu từ đầu ngày
+
+        // Fetch confirmed or completed appointments with associated slots, users, services, and examination results
         const appointments = await db.appointment.findAll({
-            where: { dentist_id: dentistId, status: 'Confirmed' },
+            where: {
+                dentist_id: dentistId,
+                status: { [Op.or]: ['Confirmed', 'Completed'] },
+                appointment_date: { [Op.gte]: today } // Lọc theo ngày hiện tại trở đi
+            },
             include: [
                 {
                     model: db.user,
@@ -277,13 +282,26 @@ const getDentistPatients = async (dentistId) => {
                     model: db.service,
                     as: 'service',
                     attributes: ['id', 'name']
+                },
+                {
+                    model: db.examination_result,
+                    as: 'examination_results',
                 }
             ],
         });
 
-        // Fetch confirmed reappointments with associated slots and users
+        // Log examination results for each appointment
+        appointments.forEach(appointment => {
+            console.log(`Appointment ID: ${appointment.id}, Examination Results: ${appointment.examination_results.length ? appointment.examination_results.map(er => er.id).join(', ') : 'None'}`);
+        });
+
+        // Fetch confirmed or completed reappointments with associated slots, users, services, and examination results
         const reappointments = await db.reappointment.findAll({
-            where: { dentist_id: dentistId, status: 'Confirmed' },
+            where: {
+                dentist_id: dentistId,
+                status: { [Op.or]: ['Confirmed', 'Completed'] },
+                reappointment_date: { [Op.gte]: today } // Lọc theo ngày hiện tại trở đi
+            },
             include: [
                 {
                     model: db.user,
@@ -299,8 +317,17 @@ const getDentistPatients = async (dentistId) => {
                     model: db.service,
                     as: 'service',
                     attributes: ['id', 'name']
+                },
+                {
+                    model: db.examination_result,
+                    as: 'examination_results',
                 }
             ],
+        });
+
+        // Log examination results for each reappointment
+        reappointments.forEach(reappointment => {
+            console.log(`Reappointment ID: ${reappointment.id}, Examination Results: ${reappointment.examination_results.length ? reappointment.examination_results.map(er => er.id).join(', ') : 'None'}`);
         });
 
         // Combine appointments and reappointments with relevant information
@@ -317,7 +344,9 @@ const getDentistPatients = async (dentistId) => {
                     end_time: appointment.slot.end_time
                 },
                 serviceName: appointment.service.name,
-                appointmentId: appointment.id
+                appointmentId: appointment.id,
+                examinationResult: !!appointment.examination_results.length, // true if examination result exists, false otherwise
+                examination_results: appointment.examination_results.map(er => er.result) // Map results
             })),
             ...reappointments.map(reappointment => ({
                 type: 'Reappointment',
@@ -331,7 +360,9 @@ const getDentistPatients = async (dentistId) => {
                     end_time: reappointment.slot.end_time
                 },
                 serviceName: reappointment.service.name,
-                appointmentId: reappointment.id
+                appointmentId: reappointment.id,
+                examinationResult: !!reappointment.examination_results.length, // true if examination result exists, false otherwise
+                examination_results: reappointment.examination_results.map(er => er.result) // Map results
             }))
         ];
 
@@ -343,13 +374,13 @@ const getDentistPatients = async (dentistId) => {
             return a.slot.id - b.slot.id;
         });
 
-
         return allPatients;
     } catch (error) {
         console.error('Error fetching dentist patients:', error);
         throw new Error('Failed to fetch dentist patients');
     }
 };
+
 
 
 
@@ -361,26 +392,62 @@ const getDentistPatientHistory = async (customerId) => {
                 {
                     model: db.appointment,
                     as: 'appointment',
-                    required: false
+                    required: false,
+                    include: [
+                        {
+                            model: db.slot,
+                            as: 'slot',
+                            attributes: ['start_time', 'end_time'],
+                            required: false
+                        }
+                    ]
                 },
                 {
                     model: db.reappointment,
                     as: 'reappointment',
-                    required: false
+                    required: false,
+                    include: [
+                        {
+                            model: db.slot,
+                            as: 'slot',
+                            attributes: ['start_time', 'end_time'],
+                            required: false
+                        }
+                    ]
                 },
                 {
                     model: db.user,
                     as: 'customer',
                     required: false
-                },
+                }
             ],
             order: [['result_date', 'DESC']],
         });
-        // Định dạng lại result_date trước khi trả về
-        const formattedHistory = history.map(entry => ({
-            ...entry.toJSON(),
-            result_date: new Date(entry.result_date).toLocaleString('en-US', { timeZone: 'UTC' }) // Định dạng theo yêu cầu
-        }));
+
+        // Format the result_date and slot information
+        const formattedHistory = history.map(entry => {
+            const entryJson = entry.toJSON();
+            const appointmentSlot = entryJson.appointment?.slot || {};
+            const reappointmentSlot = entryJson.reappointment?.slot || {};
+
+            const slotInfo = entryJson.appointment
+                ? { 
+                    start_time: appointmentSlot.start_time, 
+                    end_time: appointmentSlot.end_time 
+                }
+                : entryJson.reappointment
+                ? { 
+                    start_time: reappointmentSlot.start_time, 
+                    end_time: reappointmentSlot.end_time 
+                }
+                : {};
+
+            return {
+                ...entryJson,
+                result_date: new Date(entryJson.result_date).toLocaleString('en-US', { timeZone: 'UTC' }),
+                slot: slotInfo // Include slot information
+            };
+        });
 
         return formattedHistory;
     } catch (error) {
@@ -389,41 +456,82 @@ const getDentistPatientHistory = async (customerId) => {
     }
 };
 
-const createExaminationResult = async (appointmentId, result) => {
+
+const createExaminationResult = async (id, result, type) => {
     try {
-        let appointment = await db.appointment.findByPk(appointmentId);
+        let appointment = null;
         let reappointment = null;
+        console.log(id);
 
-        if (!appointment) {
-            reappointment = await db.reappointment.findByPk(appointmentId);
-            if (!reappointment) {
-                throw new Error('Appointment or Reappointment not found.');
+        if (type === 'Appointment') {
+            appointment = await db.appointment.findByPk(id);
+            if (!appointment) {
+                throw new Error('Appointment not found.');
             }
-        }
-
-        // Lấy ngày giờ hiện tại theo múi giờ Việt Nam
-        const resultDate = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
-
-        const examinationResultData = {
-            result,
-            result_date: db.sequelize.literal(`CONVERT(datetime, '${resultDate}', 120)`), // Assuming SQL Server
-            customer_id: appointment ? appointment.customer_id : reappointment.customer_id,
-        };
-
-        if (appointment) {
-            examinationResultData.appointment_id = appointmentId;
-            await appointment.update({ status: 'Completed' });
+        } else if (type === 'Reappointment') {
+            reappointment = await db.reappointment.findByPk(id);
+            if (!reappointment) {
+                throw new Error('Reappointment not found.');
+            }
         } else {
-            examinationResultData.reappointment_id = appointmentId;
-            await reappointment.update({ status: 'Completed' });
+            throw new Error('Invalid type specified.');
         }
 
-        const examinationResult = await db.examination_result.create(examinationResultData);
+        let resultDate = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
+        resultDate = db.sequelize.literal(`CONVERT(datetime, '${resultDate}', 120)`);
+        console.log(typeof resultDate);
+
+        let examinationResult;
+
+        // Check if an examination result already exists
+        if (type == 'Appointment') {
+            examinationResult = await db.examination_result.findOne({
+                where: {
+                    customer_id: appointment.customer_id,
+                    appointment_id: appointment.id
+                }
+            });
+        }
+
+        if (type == 'Reappointment') {
+            examinationResult = await db.examination_result.findOne({
+                where: {
+                    customer_id: reappointment.customer_id,
+                    reappointment_id: reappointment.id
+                }
+            });
+        }
+
+        console.log(examinationResult);
+
+        if (examinationResult) {
+            // Update the existing examination result
+            examinationResult.result = result;
+            examinationResult.result_date = resultDate;
+            await examinationResult.save();
+        } else {
+            // Create a new examination result
+            const examinationResultData = {
+                customer_id: appointment ? appointment.customer_id : reappointment.customer_id,
+                result,
+                result_date: resultDate,
+            };
+
+            if (appointment) {
+                examinationResultData.appointment_id = id;
+                await appointment.update({ status: 'Completed' });
+            } else {
+                examinationResultData.reappointment_id = id;
+                await reappointment.update({ status: 'Completed' });
+            }
+
+            examinationResult = await db.examination_result.create(examinationResultData);
+        }
 
         return examinationResult;
     } catch (error) {
-        console.error('Error in createExaminationResult service:', error);
-        throw new Error('Failed to create examination result.');
+        console.error('Error in createOrUpdateExaminationResult service:', error);
+        throw new Error('Failed to create or update examination result.');
     }
 };
 

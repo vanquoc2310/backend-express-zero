@@ -64,10 +64,11 @@ const getDentistPatientHistory = async (req, res) => {
 
 const createExaminationResult = async (req, res) => {
   try {
-    const { appointmentId, result } = req.body;
+    const { appointmentId, result, type } = req.body;
+    console.log(appointmentId, result, type);
 
     // Call the service method to handle business logic
-    const examinationResult = await dentistService.createExaminationResult(appointmentId, result);
+    const examinationResult = await dentistService.createExaminationResult(appointmentId, result, type);
 
     res.json(examinationResult);
   } catch (error) {

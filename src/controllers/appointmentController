@@ -27,9 +27,9 @@ const confirmAppointment = async (req, res) => {
 };
 
 const createReappointment = async (req, res) => {
-    const { appointmentId, periodicInterval, reappointmentCount } = req.body;
+    const { type, appointmentId, periodicInterval, reappointmentCount } = req.body;
     try {
-        const reappointment = await appointmentService.createReappointment(appointmentId, periodicInterval, reappointmentCount);
+        const reappointment = await appointmentService.createReappointment(type, appointmentId, periodicInterval, reappointmentCount);
         res.status(201).json({ reappointment });
     } catch (error) {
         console.error('Error creating reappointment:', error);

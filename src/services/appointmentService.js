@@ -112,14 +112,20 @@ const confirmAppointment = async (appointmentId) => {
 };
 
 
-const createReappointment = async (appointmentId, periodicInterval, reappointmentCount) => {
+const createReappointment = async (type, appointmentId, periodicInterval, reappointmentCount) => {
     let transaction;
     try {
         // Start a transaction
         transaction = await db.sequelize.transaction();
+        console.log(appointmentId);
 
-        // Fetch the original appointment to get necessary details
-        const appointment = await db.appointment.findByPk(appointmentId, {
+        // Determine which model to query based on the type
+        const model = type === 'Appointment' ? db.appointment : db.reappointment;
+
+        console.log(model);
+
+        // Fetch the original appointment or reappointment to get necessary details
+        const appointment = await model.findByPk(appointmentId, {
             include: [
                 {
                     model: db.slot,
@@ -152,13 +158,13 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
         });
 
         if (!appointment) {
-            throw new Error('Appointment not found');
+            throw new Error(`${type} not found`);
         }
 
         const { slot, customer, dentist, service, clinic } = appointment;
 
         // Start from the last reappointment date or appointment date + 30 days
-        let currentDate = moment.tz(appointment.appointment_date, 'Asia/Ho_Chi_Minh').endOf('day').add(30, 'days').startOf('day');
+        let currentDate = moment.tz(appointment.appointment_date || appointment.reappointment_date, 'Asia/Ho_Chi_Minh').endOf('day').add(30, 'days').startOf('day');
 
         // Calculate the reappointment dates
         const reappointmentDates = [];
@@ -175,10 +181,14 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
         const doc = new PDFDocument({ bufferPages: true });
         const stream = fs.createWriteStream(pdfPath);
 
+        // Embed a font that supports Vietnamese
+        doc.registerFont('Arial', 'C:/Windows/Fonts/Arial.ttf');
+        doc.font('Arial');
+
         doc.pipe(stream);
 
         // Write PDF content
-        doc.font('Times-Roman').fontSize(16).text('Chi tiết lịch tái khám', { align: 'center' }).moveDown(0.5);
+        doc.fontSize(16).text('Chi tiết lịch tái khám', { align: 'center' }).moveDown(0.5);
 
         reappointmentDates.forEach((date, index) => {
             doc.fontSize(12).text(`Lịch tái khám ${index + 1}`, { underline: true }).moveDown(0.5);
@@ -217,7 +227,7 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
             // Handle email sending error here
         }
 
-        // Update the status of the original appointment to 'Completed'
+        // Update the status of the original appointment or reappointment to 'Completed'
         await appointment.update({ status: 'Completed' }, { transaction });
 
         // Create reappointments and schedule dentist slots
@@ -241,34 +251,29 @@ const createReappointment = async (appointmentId, periodicInterval, reappointmen
                 where: {
                     dentist_id: dentist.id,
                     slot_id: slot.id,
-                    date: formattedDate, // Only check for date without time part
+                    date: formattedDate,
                 },
-                transaction, // Pass transaction to ensure consistency
+                transaction,
             });
 
             if (existingSlot) {
-                // If slot exists, update current_patients by incrementing by 1
                 await existingSlot.increment('current_patients', { transaction });
             } else {
-                // Create new dentist_slot if not exist
                 await db.dentist_slot.create({
                     dentist_id: dentist.id,
                     slot_id: slot.id,
-                    date: formattedDate, // Use the new calculated date
-                    current_patients: 1, // Assuming initial patients count is 1
+                    date: formattedDate,
+                    current_patients: 1,
                 }, { transaction });
             }
 
             return reappointment;
         }));
 
-        // Commit the transaction
         await transaction.commit();
 
-        // Return created reappointments
         return createdReappointments;
     } catch (error) {
-        // Rollback the transaction if there's an error
         if (transaction) await transaction.rollback();
         console.error('Error in createReappointment service:', error);
         throw new Error('Failed to create reappointment');
