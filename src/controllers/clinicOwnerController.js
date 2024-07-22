@@ -70,8 +70,8 @@ const addDentist = async (req, res) => {
 const updateDentist = async (req, res) => {
     try {
         const dentistId = req.params.id;
-        const { email, name, phonenumber, degree, description, status } = req.body;
-        const dentistData = { email, name, phonenumber, degree, description, status };
+        const { email, name, phonenumber, degree, description, status, image } = req.body;
+        const dentistData = { email, name, phonenumber, degree, description, status, image };
         const result = await dentistService.updateDentist(dentistId, dentistData);
         res.status(200).json(result);
     } catch (error) {

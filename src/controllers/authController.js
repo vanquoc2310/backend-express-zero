@@ -33,7 +33,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body; 
+    const { email, password } = req.body;
     let user;
 
     // Check if the identifier is an email or phone number
@@ -81,7 +81,7 @@ const login = async (req, res) => {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {});
-    res.json({ token });
+    res.status(200).json({ token });
   } catch (err) {
     res.status(400).json({ error: 'Error logging in' });
   }
