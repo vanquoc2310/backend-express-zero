@@ -56,9 +56,9 @@ const searchDentistsByName = async (req, res) => {
 
 const addDentist = async (req, res) => {
     try {
-        let { email, password, name, phonenumber, degree, description } = req.body;
+        let { email, password, name, phonenumber, degree, description, image } = req.body;
         const clinic_id = req.user.clinicId;
-        const dentistData = { email, password, name, phonenumber, degree, description, clinic_id };
+        const dentistData = { email, password, name, phonenumber, degree, description, clinic_id, image };
         const result = await dentistService.addDentist(dentistData);
         res.status(201).json(result);
     } catch (error) {

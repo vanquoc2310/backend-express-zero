@@ -59,18 +59,27 @@ const login = async (req, res) => {
     }
 
     let clinicId = null;
-    if (user.role_id === 4) {
+    let additionalPayload = {};
+
+    if (user.role_id != null) {
+      additionalPayload.name = user.name;
+    } else if (user.role_id === 4) {
+      // Clinic owner
+      additionalPayload.name = user.name;
+      additionalPayload.image = user.image;
       const clinic = await db.clinic.findOne({ where: { clinic_owner_id: user.id } });
       if (clinic) {
         clinicId = clinic.id;
       }
     }
 
+    console.log(user.role_id);
+
     const payload = {
       userId: user.id,
       role: user.role_id,  // Assuming role_id represents the role of the user
-      iat: Math.floor(Date.now() / 1000),  // Issued at time
-      clinicId : clinicId,
+      clinicId: clinicId,
+      ...additionalPayload,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {});
@@ -120,7 +129,7 @@ const resetPassword = async (req, res) => {
     }
 
     await userService.setNewPassword(email, newPassword);
-    res.redirect('/'); // Chuyển hướng về trang chủ sau khi đặt lại mật khẩu thành công
+    res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

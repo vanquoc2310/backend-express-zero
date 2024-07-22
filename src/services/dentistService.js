@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const addDentist = async (dentistData) => {
     const transaction = await db.sequelize.transaction();
     try {
-        let { email, password, name, phonenumber, degree, description, clinic_id } = dentistData;
+        let { email, password, name, phonenumber, degree, description, clinic_id, image } = dentistData;
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const activedDate = moment().format('YYYY-MM-DD');
@@ -19,6 +19,7 @@ const addDentist = async (dentistData) => {
             phonenumber,
             status: true,
             role_id: 3,
+            image,
         }, { transaction });
 
         // Create a new dentist_info record
