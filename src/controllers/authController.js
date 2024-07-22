@@ -61,7 +61,7 @@ const login = async (req, res) => {
     let clinicId = null;
     let additionalPayload = {};
 
-    if (user.role_id != null) {
+    if (user.role_id === 3 || user.role_id === 2 || user.role_id === 1) {
       additionalPayload.name = user.name;
     } else if (user.role_id === 4) {
       // Clinic owner
@@ -72,8 +72,6 @@ const login = async (req, res) => {
         clinicId = clinic.id;
       }
     }
-
-    console.log(user.role_id);
 
     const payload = {
       userId: user.id,
