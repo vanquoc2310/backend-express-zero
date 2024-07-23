@@ -13,6 +13,22 @@ const fs = require('fs');
 
 const createAppointment = async (customerId, clinicId, dentistId, serviceId, slotId, appointmentDate) => {
     try {
+
+        // Kiểm tra xem khách hàng đã có lịch hẹn vào cùng ngày chưa (ngoại trừ Cancelled)
+        const existingAppointment = await db.appointment.findOne({
+            where: {
+                customer_id: customerId,
+                appointment_date: appointmentDate, // Sử dụng trực tiếp appointmentDate
+                status: { [db.Sequelize.Op.ne]: 'Cancelled' }
+            }
+        });
+
+        if (existingAppointment) {
+            const otherClinic = await db.clinic.findByPk(existingAppointment.clinic_id);
+            throw new Error(`Bạn đã có lịch hẹn tại ${otherClinic.name} vào ngày này.`);
+        }
+
+
         // Check if the dentist has a slot on the specified date
         let existingSlot = await db.dentist_slot.findOne({
             where: {
@@ -49,7 +65,7 @@ const createAppointment = async (customerId, clinicId, dentistId, serviceId, slo
         return newAppointment;
     } catch (error) {
         console.error('Error creating appointment:', error);
-        throw new Error('Failed to create appointment');
+        throw error;
     }
 };
 
